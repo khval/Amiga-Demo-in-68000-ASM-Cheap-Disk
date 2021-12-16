@@ -1633,350 +1633,481 @@
 													//		RTS
 
 
-mt_FunkTable dc.b 0,5,6,7,8,10,11,13,16,19,22,26,32,43,64,128
+uint8_t mt_FunkTable[]={ 0,5,6,7,8,10,11,13,16,19,22,26,32,43,64,128 };
 
-mt_VibratoTable	
+uint8_t mt_VibratoTable[]={
 	dc.b   0, 24, 49, 74, 97,120,141,161
 	dc.b 180,197,212,224,235,244,250,253
 	dc.b 255,253,250,244,235,224,212,197
-	dc.b 180,161,141,120, 97, 74, 49, 24
+	dc.b 180,161,141,120, 97, 74, 49, 24};
 
-mt_PeriodTable
-; Tuning 0, Normal
+uint16_t mt_PeriodTable[]={
+// Tuning 0, Normal
 	dc.w	856,808,762,720,678,640,604,570,538,508,480,453
 	dc.w	428,404,381,360,339,320,302,285,269,254,240,226
 	dc.w	214,202,190,180,170,160,151,143,135,127,120,113
-; Tuning 1
+// Tuning 1
 	dc.w	850,802,757,715,674,637,601,567,535,505,477,450
 	dc.w	425,401,379,357,337,318,300,284,268,253,239,225
 	dc.w	213,201,189,179,169,159,150,142,134,126,119,113
-; Tuning 2
+// Tuning 2
 	dc.w	844,796,752,709,670,632,597,563,532,502,474,447
 	dc.w	422,398,376,355,335,316,298,282,266,251,237,224
 	dc.w	211,199,188,177,167,158,149,141,133,125,118,112
-; Tuning 3
+// Tuning 3
 	dc.w	838,791,746,704,665,628,592,559,528,498,470,444
 	dc.w	419,395,373,352,332,314,296,280,264,249,235,222
 	dc.w	209,198,187,176,166,157,148,140,132,125,118,111
-; Tuning 4
+// Tuning 4
 	dc.w	832,785,741,699,660,623,588,555,524,495,467,441
 	dc.w	416,392,370,350,330,312,294,278,262,247,233,220
 	dc.w	208,196,185,175,165,156,147,139,131,124,117,110
-; Tuning 5
+// Tuning 5
 	dc.w	826,779,736,694,655,619,584,551,520,491,463,437
 	dc.w	413,390,368,347,328,309,292,276,260,245,232,219
 	dc.w	206,195,184,174,164,155,146,138,130,123,116,109
-; Tuning 6
+// Tuning 6
 	dc.w	820,774,730,689,651,614,580,547,516,487,460,434
 	dc.w	410,387,365,345,325,307,290,274,258,244,230,217
 	dc.w	205,193,183,172,163,154,145,137,129,122,115,109
-; Tuning 7
+// Tuning 7
 	dc.w	814,768,725,684,646,610,575,543,513,484,457,431
 	dc.w	407,384,363,342,323,305,288,272,256,242,228,216
 	dc.w	204,192,181,171,161,152,144,136,128,121,114,108
-; Tuning -8
+// Tuning -8
 	dc.w	907,856,808,762,720,678,640,604,570,538,508,480
 	dc.w	453,428,404,381,360,339,320,302,285,269,254,240
 	dc.w	226,214,202,190,180,170,160,151,143,135,127,120
-; Tuning -7
+// Tuning -7
 	dc.w	900,850,802,757,715,675,636,601,567,535,505,477
 	dc.w	450,425,401,379,357,337,318,300,284,268,253,238
 	dc.w	225,212,200,189,179,169,159,150,142,134,126,119
-; Tuning -6
+// Tuning -6
 	dc.w	894,844,796,752,709,670,632,597,563,532,502,474
 	dc.w	447,422,398,376,355,335,316,298,282,266,251,237
 	dc.w	223,211,199,188,177,167,158,149,141,133,125,118
-; Tuning -5
+// Tuning -5
 	dc.w	887,838,791,746,704,665,628,592,559,528,498,470
 	dc.w	444,419,395,373,352,332,314,296,280,264,249,235
 	dc.w	222,209,198,187,176,166,157,148,140,132,125,118
-; Tuning -4
+// Tuning -4
 	dc.w	881,832,785,741,699,660,623,588,555,524,494,467
 	dc.w	441,416,392,370,350,330,312,294,278,262,247,233
 	dc.w	220,208,196,185,175,165,156,147,139,131,123,117
-; Tuning -3
+// Tuning -3
 	dc.w	875,826,779,736,694,655,619,584,551,520,491,463
 	dc.w	437,413,390,368,347,328,309,292,276,260,245,232
 	dc.w	219,206,195,184,174,164,155,146,138,130,123,116
-; Tuning -2
+// Tuning -2
 	dc.w	868,820,774,730,689,651,614,580,547,516,487,460
 	dc.w	434,410,387,365,345,325,307,290,274,258,244,230
 	dc.w	217,205,193,183,172,163,154,145,137,129,122,115
-; Tuning -1
+// Tuning -1
 	dc.w	862,814,768,725,684,646,610,575,543,513,484,457
 	dc.w	431,407,384,363,342,323,305,288,272,256,242,228
-	dc.w	216,203,192,181,171,161,152,144,136,128,121,114
+	dc.w	216,203,192,181,171,161,152,144,136,128,121,114 };
 
-mt_chan1temp	dc.l	0,0,0,0,0,$00010000,0,  0,0,0,0
-mt_chan2temp	dc.l	0,0,0,0,0,$00020000,0,  0,0,0,0
-mt_chan3temp	dc.l	0,0,0,0,0,$00040000,0,  0,0,0,0
-mt_chan4temp	dc.l	0,0,0,0,0,$00080000,0,  0,0,0,0
+uint32_t mt_chan1temp[]={0,0,0,0,0,0x00010000,0,  0,0,0,0};
+uint32_t mt_chan2temp[]={0,0,0,0,0,0x00020000,0,  0,0,0,0};
+uint32_t mt_chan3temp[]={0,0,0,0,0,0x00040000,0,  0,0,0,0};
+uint32_t mt_chan4temp[]={0,0,0,0,0,0x00080000,0,  0,0,0,0};
 
-mt_SampleStarts	dc.l	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-		dc.l	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+uint32_t mt_SampleStarts[] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+		dc.l	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
-mt_SongDataPtr	dc.l 0
+void *mt_SongDataPtr = NULL;
 
-mt_speed	dc.b 6
-mt_counter	dc.b 0
-mt_SongPos	dc.b 0
-mt_PBreakPos	dc.b 0
-mt_PosJumpFlag	dc.b 0
-mt_PBreakFlag	dc.b 0
-mt_LowMask	dc.b 0
-mt_PattDelTime	dc.b 0
-mt_PattDelTime2	dc.b 0,0
+uint8_t mt_speed	= 6
+uint8_t mt_counter	= 0
+uint8_t mt_SongPos	= 0
+uint8_t mt_PBreakPos	= 0
+uint8_t mt_PosJumpFlag	= 0
+uint8_t mt_PBreakFlag	= 0
+uint8_t mt_LowMask	= 0
+uint8_t mt_PattDelTime	= 0
+uint8_t mt_PattDelTime2[] = { 0,0 };
 
-mt_PatternPos	dc.w 0
-mt_DMACONtemp	dc.w 0
+uint16_t mt_PatternPos = 0;
+uint16_t mt_DMACONtemp = 0;
 ;/* End of File */
 
-Ritchy_Volumes:	blk.w	4,64
-GfxBase:	dc.l	0
-GfxName:	dc.b	'graphics.library',0
-		even
+uint16_t Ritchy_Volumes[]={
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0};
 
-Wait:		dc.l	0
-permit:		dc.w	0
-mousex:		dc.w	$80
-mousey:		dc.w	$70
-lastx:		dc.b	0
-lasty:		dc.b	0
-Auto:		dc.b	0
-	even
+void *GfxBase = NULL;
+const char GfxName[] = "graphics.library";
+
+
+uint32_t Wait =	0;
+uint16_t permit = 0;
+uint16_t mousex = 0x80
+uint16_t mousey = 0x70
+uint8_t lastx =	0
+uint8_t lasty =	0
+uint8_t Auto =	0
 
 	section chip,data
 
-Pointeur:
-	dc.w $0000,$0000
-	dc.w $FC00,$F800
-	dc.w $8800,$F000
-	dc.w $9000,$E000
-	dc.w $A000,$D800
-	dc.w $C000,$9C00
-	dc.w $8000,$0E00
-	dc.w $0000,$0700
-	dc.w $0080,$0300
-	dc.w $0100,$0000
-	dc.w $0000,$0000
+uint16_t Pointeur[]={
+	0x0000,0x0000,
+	0xFC00,0xF800,
+	0x8800,0xF000,
+	0x9000,0xE000,
+	0xA000,0xD800,
+	0xC000,0x9C00,
+	0x8000,0x0E00,
+	0x0000,0x0700,
+	0x0080,0x0300,
+	0x0100,0x0000,
+	0x0000,0x0000};
 
 
-safemem:dc.w 0
-	dc.w 0
+uint16_t safemem[]={0,0};
 
-;copper list
+//copper list
 
-Compteur:	dc.w	8
-PTtexte:	dc.l	Texte
+uint16_t Compteur =	8;
+const char *PTtexte = Texte;
 
-; ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789    .  ,  '  !  :  -  ?  =>
+// ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789    .  ,  '  !  :  -  ?  =>
 
-Texte:	dc.b	'                  '
-	dc.b	'RITCHY AND EREKOSE PRESENT TO YOU THIS LITTLE'
-	Dc.B " PRODUCTION FROM THE MOST"
-	Dc.B " WELLKNOWN GROUP POPULAR FOR HIS AMAZING, SMOKING, DRINKING,"
-	Dc.B " FUC...HUHO...HER...HOPLAING, EVERYTHINGS-ING GUYS !! YES, "
-	Dc.B " ANOTHER UNBELIEVABLE PRODUCTION IS NOW UNDER YOUR EYES FROM THIS"
-	Dc.B " GROUP CALLED........> PARLAFOX...HU, NO.....> BRISTOL....HU, SHIT."
-	Dc.B ".....AH YEAH ! KANGOUROU BROTHERS !......AH, SHIT...> GOLANA !"
-	Dc.B ".......NO.........AH THAT'S IT......A N A L O G !!    YYEEESS !"
-	Dc.B " I FOUND IT !!!! YYYEEEEEEEAAAAHHHHHH !! YAHOU, YIPIE !! YARGLA !"
-	Dc.B "..............HEY !....WHAT ?........WE ALL ALLREADY NOTICE THAT...."
-	Dc.B "...AH ? REALLY ??.............OK OK....."
-	Dc.B "WELL, AS I (EREKOSE) REALLY DONT KNOW WHAT TO SAY, LET'S WRITE SOME"
-	Dc.B " BULLSHIT....SO, THIS LITTLE MUSIC DISK WAS DONE IN ONE NIGHT, AT"
-	Dc.B " RITCHY'S HOME, JUST AFTER THE TRADIONNAL SPAGHETTI-YOGURT DINER."
-	Dc.B " ALL CODE WAS DONE BY...!! RITCHY !!...ALL MUSIC BY EREKOSE (ME) AND MY"
-	Dc.B " FRIEND MONTY>US, BUT OLD MEMBER OF ANALOG...AND AT LAST BUT NOT LEAST"
-	Dc.B " ALL GFX BY THE WONDERFULL...!!! BAOBAB !!!..."
-	Dc.B "AND NOW FOR SOMETHING COMPLETLY DIFFERENT....A COW WITH TWO NOSES..."
-	Dc.B "NO,NO,NO....A MEN WITH THREE EYES.......NO,NO,NO...."
-	Dc.B " JE TIENS ICI A SIGNALER QUE TOUTES RESSEMBLANCE AVEC DES NOMS"
-	Dc.B " OU DES GROUPES CONNUS NE SERAIT QUE PUREMENT VOLONTAIRE."
-	Dc.B " POP-QUIZ: WHO LIKE MAC DONALDS ? "
-	Dc.B " ANSWER: NOT ME !!! "
-	Dc.B "AND NOW ? WELL, I THINK I'LL JUST GIVE A LITTLE HELLO TO ALL MY OLD"
-	Dc.B "FRIENDS AND CONTACT I LEFT FOR SOME TIMES (I'M NOW IN THE ARMY AND"
-	Dc.B " ITS REALLY BORING !!!! NEVER DO THE ARMY IF YA BE ABLE TO !!)."
-	Dc.B " SO, BIG KISS TO ALL MEMBERS OF ANALOG, MONTY AND VANESSA, ZUUL(PC),"  
-	Dc.B " ALEX>MVT, BROSS>TSB, JOGEIR, KAEL, KARSTEN (INDEP), BAD CAT>IBB,"
-	Dc.B " , STEPHANE, RACKLER>LEGO, MR KING, ZINKFLOYD>TRSI, WHIRLY>DELIGHT,"
-	Dc.B " MANITOU>MOSQUITO, SHUN>LIQUID, SHED>CRYO, SANDMAN>EXILE, CORTEX, KILLER>ARKHAM,"
-	Dc.B " SNOOPY>DEFORM.............TO ALL OF YOU, REALLY SORRY FOR MY FUCKING"
-	Dc.B " BIG DELAY, BUT I REALLY DONT REACH TO BE A GOOD SWAPPER....I'M TOO"
-	Dc.B " LAZY FOR THAT..................GOOD BYE !................."
-	Dc.B "SCROLL TEXT RESTART...............5.........4.........3........1....."
-	Dc.B " HEY !!! WHERE IS THE 2 ????.......JUST KIDDING !.....2......1....."
-	Dc.B " HAVE A NICE DAY !......THANK YOU !!!!!!!!......................"
+const char *Texte = "                  "
+	"RITCHY AND EREKOSE PRESENT TO YOU THIS LITTLE"
+	" PRODUCTION FROM THE MOST"
+	" WELLKNOWN GROUP POPULAR FOR HIS AMAZING, SMOKING, DRINKING,"
+	" FUC...HUHO...HER...HOPLAING, EVERYTHINGS-ING GUYS !! YES, "
+	" ANOTHER UNBELIEVABLE PRODUCTION IS NOW UNDER YOUR EYES FROM THIS"
+	" GROUP CALLED........> PARLAFOX...HU, NO.....> BRISTOL....HU, SHIT."
+	".....AH YEAH ! KANGOUROU BROTHERS !......AH, SHIT...> GOLANA !"
+	".......NO.........AH THAT'S IT......A N A L O G !!    YYEEESS !"
+	" I FOUND IT !!!! YYYEEEEEEEAAAAHHHHHH !! YAHOU, YIPIE !! YARGLA !"
+	"..............HEY !....WHAT ?........WE ALL ALLREADY NOTICE THAT...."
+	"...AH ? REALLY ??.............OK OK....."
+	"WELL, AS I (EREKOSE) REALLY DONT KNOW WHAT TO SAY, LET'S WRITE SOME"
+	" BULLSHIT....SO, THIS LITTLE MUSIC DISK WAS DONE IN ONE NIGHT, AT"
+	" RITCHY'S HOME, JUST AFTER THE TRADIONNAL SPAGHETTI-YOGURT DINER."
+	" ALL CODE WAS DONE BY...!! RITCHY !!...ALL MUSIC BY EREKOSE (ME) AND MY"
+	" FRIEND MONTY>US, BUT OLD MEMBER OF ANALOG...AND AT LAST BUT NOT LEAST"
+	" ALL GFX BY THE WONDERFULL...!!! BAOBAB !!!..."
+	"AND NOW FOR SOMETHING COMPLETLY DIFFERENT....A COW WITH TWO NOSES..."
+	"NO,NO,NO....A MEN WITH THREE EYES.......NO,NO,NO...."
+	" JE TIENS ICI A SIGNALER QUE TOUTES RESSEMBLANCE AVEC DES NOMS"
+	" OU DES GROUPES CONNUS NE SERAIT QUE PUREMENT VOLONTAIRE."
+	" POP-QUIZ: WHO LIKE MAC DONALDS ? "
+	" ANSWER: NOT ME !!! "
+	"AND NOW ? WELL, I THINK I'LL JUST GIVE A LITTLE HELLO TO ALL MY OLD"
+	"FRIENDS AND CONTACT I LEFT FOR SOME TIMES (I'M NOW IN THE ARMY AND"
+	" ITS REALLY BORING !!!! NEVER DO THE ARMY IF YA BE ABLE TO !!)."
+	" SO, BIG KISS TO ALL MEMBERS OF ANALOG, MONTY AND VANESSA, ZUUL(PC),"  
+	" ALEX>MVT, BROSS>TSB, JOGEIR, KAEL, KARSTEN (INDEP), BAD CAT>IBB,"
+	" , STEPHANE, RACKLER>LEGO, MR KING, ZINKFLOYD>TRSI, WHIRLY>DELIGHT,"
+	" MANITOU>MOSQUITO, SHUN>LIQUID, SHED>CRYO, SANDMAN>EXILE, CORTEX, KILLER>ARKHAM,"
+	" SNOOPY>DEFORM.............TO ALL OF YOU, REALLY SORRY FOR MY FUCKING"
+	" BIG DELAY, BUT I REALLY DONT REACH TO BE A GOOD SWAPPER....I'M TOO"
+	" LAZY FOR THAT..................GOOD BYE !................."
+	"SCROLL TEXT RESTART...............5.........4.........3........1....."
+	" HEY !!! WHERE IS THE 2 ????.......JUST KIDDING !.....2......1....."
+	" HAVE A NICE DAY !......THANK YOU !!!!!!!!......................";
 
-	dc.b	0
-	even
-TexteInfo:
-	dc.b	'   WELCOME IN THE INFOTEXT... '
-	dc.b	"  J'SUIS D'ACCORD AVEC SERGE!!!   "
-	dc.b	'PRESS ESC TO QUIT CHEAP DISK    '
-	dc.b	'CLICK ON NAME OF MUSIC TO CHOOSE ANOTHER ONE....INCREDIBLE'
-	dc.b	' NO ?    ' 
-	dc.b	'CLICK ON PAUSE TO..........PAUSE ?.....YEAH !' 
-	dc.b	'CLICK ON PLAY TO REPLAY AFTER PAUSE...'
-	dc.b	'CLICK ON FILTER TO TOGGLE THE FILTER ON-OFF      '
-	dc.b	'CLICK ON INFO TO.......OH, YOU ALREADY DID IT !!!   '
-	dc.b	'CREDITS FOR THIS ONE-NIGHT MUSIC-FILE:   '
-	dc.b	'CODE > RITCHY - FONT > PLASMA - '
-	dc.b	'GFX > BAOBAB - MORAL SUPPORT > WORGLUB...   '
-
-	dc.b	'THIS MUSICAL-DEMO HAS BEEN CODED IN ONE LONG NIGHT...  '
-	DC.B	"THANX TO THE COCA-COLA AND BEER, CHESTERFIELD AND ROYAL "
-	DC.B	"MENTHOL CIGARETTES, MARS ICECREAM AND CREME MONTBLANC "
-	DC.B	"A LA VANILLE...QU'ON A OUBLIE DE MANGER ! MAIS TANT MIEUX"
-	DC.B	" CA EN FERA PLUS POUR MOI!      "
-	DC.B	"CHRISTINE !!! Y'T'RESTE PAS QUE'QUES CAHUETTES ?  "
-	DC.B	"         ALLEZ CHRISTINE, QUOI !! FAIT PETER LES CAHUETTES !"
-	DC.B	'                    '
-
-	DC.B	"BON, ICI JE -RITCHY- PEUX TAPER QUELQUECHOSE CAR PERSONNE "
-	DC.B	"NE LE LIRA JAMAIS... JE VOUDRAIS DIRE QUE ANALOG EST "
-	DC.B	"VRAIMENT UN GROUPE SUPER ! UNE DEMO PAR AN, TOUT LE MONDE "
-	DC.B	"TE CRITIQUE ET DE PREFERENCE CEUX QUI NE FONT RIEN...    "
-	DC.B	"BISOUS A LAETI,FIFI,STEPH,...,PAT,THIERRY,DEUFRE,SPEEDMAN,"
-	DC.B	"DD FROM SPIDER!,7TH YEUX AUSSI,CHAOS,ACKERLIGHT,BAMIGA "
-	DC.B	"SECTOR ONE,THE KENT TEAM,RED SECTOR,PLASMA FORCE,UNIT A,"
-	DC.B	"DOC,WILD COPPER,REBELS,CBC,CASCADE,MEGAFORCE... "
-	DC.B	"AND N'OUBLIEZ PAS >>> ONLY AMIGA "
-	DC.B	"MAKES IT POSSIBLE!  BISOUS A TOI AUSSI PETIT LECTEUR DE "
-	DC.B	"SCROLLING,CAR ON T'EMBRASSE PAS SOUVENT ET C'EST PAS JUSTE."
-
-	dc.b	"THIS DEMO IS FREEWARE, IT MEANS THAT IS A >FREE SOFTWARE, "
-	DC.B	"SO IT'S FORBIDDEN DE LA VENDRE !   "
-
-	dc.b	'           ',0
-	even
+const char *TexteInfo[]=
+		"   WELCOME IN THE INFOTEXT... "
+		"  J'SUIS D'ACCORD AVEC SERGE!!!   "
+		"PRESS ESC TO QUIT CHEAP DISK    "
+		"CLICK ON NAME OF MUSIC TO CHOOSE ANOTHER ONE....INCREDIBLE"
+		" NO ?    '"
+		"CLICK ON PAUSE TO..........PAUSE ?.....YEAH !'"
+		"CLICK ON PLAY TO REPLAY AFTER PAUSE..."
+		"CLICK ON FILTER TO TOGGLE THE FILTER ON-OFF      "
+		"CLICK ON INFO TO.......OH, YOU ALREADY DID IT !!!   "
+		"CREDITS FOR THIS ONE-NIGHT MUSIC-FILE:   "
+		"CODE > RITCHY - FONT > PLASMA - "
+		"GFX > BAOBAB - MORAL SUPPORT > WORGLUB...   "
+		"THIS MUSICAL-DEMO HAS BEEN CODED IN ONE LONG NIGHT...  "
+		"THANX TO THE COCA-COLA AND BEER, CHESTERFIELD AND ROYAL "
+		"MENTHOL CIGARETTES, MARS ICECREAM AND CREME MONTBLANC "
+		"A LA VANILLE...QU'ON A OUBLIE DE MANGER ! MAIS TANT MIEUX"
+		" CA EN FERA PLUS POUR MOI!      "
+		"CHRISTINE !!! Y'T'RESTE PAS QUE'QUES CAHUETTES ?  "
+		"         ALLEZ CHRISTINE, QUOI !! FAIT PETER LES CAHUETTES !"
+		"                    "
+		"BON, ICI JE -RITCHY- PEUX TAPER QUELQUECHOSE CAR PERSONNE "
+		"NE LE LIRA JAMAIS... JE VOUDRAIS DIRE QUE ANALOG EST "
+		"VRAIMENT UN GROUPE SUPER ! UNE DEMO PAR AN, TOUT LE MONDE "
+		"TE CRITIQUE ET DE PREFERENCE CEUX QUI NE FONT RIEN...    "
+		"BISOUS A LAETI,FIFI,STEPH,...,PAT,THIERRY,DEUFRE,SPEEDMAN,"
+		"DD FROM SPIDER!,7TH YEUX AUSSI,CHAOS,ACKERLIGHT,BAMIGA "
+		"SECTOR ONE,THE KENT TEAM,RED SECTOR,PLASMA FORCE,UNIT A,"
+		"DOC,WILD COPPER,REBELS,CBC,CASCADE,MEGAFORCE... "
+		"AND N'OUBLIEZ PAS >>> ONLY AMIGA "
+		"MAKES IT POSSIBLE!  BISOUS A TOI AUSSI PETIT LECTEUR DE "
+		"SCROLLING,CAR ON T'EMBRASSE PAS SOUVENT ET C'EST PAS JUSTE."
+		"THIS DEMO IS FREEWARE, IT MEANS THAT IS A >FREE SOFTWARE, "
+		"SO IT'S FORBIDDEN DE LA VENDRE !   "
+		"           ";
 
 
-COPPER2:dc.l	$008e6981,$009085c1
-	dc.l	$00920068,$00940098
-Bpls2:	dc.l	$00e00000,$00e20000
-	dc.l	$00e40000,$00e60000
-	dc.l	$00e80000,$00ea0000
-com:	dc.l	$01000000,$01020000
-	dc.l	$01040033,$01FC0000
-	dc.w	$10c,$11,$106,0
-	dc.l	$01080038,$010a0038
-	dc.w	$120,0,$122,0
-	dc.w	$124,0,$126,0
-	dc.w	$128,0,$12a,0
-	dc.w	$12c,0,$12e,0
-	dc.w	$130,0,$132,0
-	dc.w	$134,0,$136,0
-	dc.w	$138,0,$13a,0
-	dc.w	$13c,0,$13e,0
 
-	dc.w $0106,$0000
-	dc.w $0180,$033a
-	dc.w $0182,$0565
-	dc.w $0184,$0676
-	dc.w $0186,$0797
-	dc.w $0188,$08A8
-	dc.w $018A,$0ABA
-	dc.w $018C,$0BDB
-	dc.w $018E,$0CEC
+COPPER2 = ptr;
 
-	dc.w	$ce0f,$fffe,$180,$229
+	setCop(	0x008e,0x6981 );
+	setCop( 0x0090,0x85c1 );
+	setCop(	0x0092,0x0068 );
+	setCop( 0x0094,0x0098 );
 
-	dc.l	-2
+Bpls2 = ptr;
 
+	setCop( 0x00e0,0x0000);
+	setCop( 0x00e2,0x0000);
+	setCop( 0x00e4,0x0000);
+	setCop( 0x00e6,0x0000);
+	setCop( 0x00e8,0x0000);
+	setCop( 0x00ea,0x0000);
 
-TableEqu:
-	dc.w	$F29,$100	; Init,Dec
-	dc.w	$2F9,$010
-	dc.w	$FF9,$110
-	dc.w	$2B0,$00F
+com = ptr;
 
-copper:	dc.l	$008e2981,$009029c1
-r38d0:	dc.l	$00920080,$009400c0
-Bpls:	dc.l	$00e00000,$00e20000
-	dc.l	$00e40000,$00e60000
-	dc.l	$00e80000,$00ea0000
-	dc.l	$00ec0000,$00ee0000
-	dc.l	$00f00000,$00f20000
-	dc.l	$01005200,$01020000	; 5 bitplanes
-	dc.l	$01040033,$01FC0000
-	dc.w	$10c,$11,$106,0
-Mod:	dc.l	$010800aa,$010a00aa
+	setCop(	0x0100,0x0000 );
+	setCop( 0x0102,0x0000 );
+	setCop(	0x0104,0x0033 );
+	setCop( 0x01FC,0x0000 );
+	setCop(	0x010c,0x11);
+	setCop( 0x0106,0);
+	setCop(	0x0108,0x0038 );
+	setCop( 0x010a,0x0038 );
+	setCop(	0x120,0 );
+	setCop( 0x122,0 );
+	setCop(	0x124,0 );
+	setCop( 0x126,0 );
+	setCop(	0x128,0 );
+	setCop( 0x12a,0 );
+	setCop(	0x12c,0 );
+	setCop( 0x12e,0 );
+	setCop(	0x130,0 );
+	setCop( 0x132,0 );
+	setCop(	0x134,0 );
+	setCop( 0x136,0 );
+	setCop(	0x138,0 );
+	setCop( 0x13a,0 );
+	setCop(	0x13c,0 );
+	setCop( 0x13e,0 );
 
-Sprt:	dc.w	$120,0,$122,0
-	dc.w	$124,0,$126,0
-	dc.w	$128,0,$12a,0
-	dc.w	$12c,0,$12e,0
-	dc.w	$130,0,$132,0
-	dc.w	$134,0,$136,0
-	dc.w	$138,0,$13a,0
-	dc.w	$13c,0,$13e,0
+	setCop( 0x0106,0x0000 );
+	setCop( 0x0180,0x033a );
+	setCop( 0x0182,0x0565 );
+	setCop( 0x0184,0x0676 );
+	setCop( 0x0186,0x0797 );
+	setCop( 0x0188,0x08A8 );
+	setCop( 0x018A,0x0ABA );
+	setCop( 0x018C,0x0BDB );
+	setCop( 0x018E,0x0CEC );
+
+	setCop(	0xce0f,0xfffe);
+	setCop( 0x180,0x229 );
+	setCop( 0xFFFF,0xFFFE);
 
 
-	dc.w	$180,$033a,$182,$0fff
-Coul:	dc.w	$184,$eef,$186,$0ccf
-	dc.w	$188,$0bbf,$18a,$09af,$18c,$088f,$18e,$067f
-	dc.w	$190,$055d,$192,$044c,$194,$033a,$196,$0229
-	dc.w	$198,$0117,$19a,$0116,$19c,$0004,$19e,$0003
-	dc.w	$1a0,$0ffc,$1a2,$0eea,$1a4,$0dd9,$1a6,$0cb8
-	dc.w	$1a8,$0ba7,$1aa,$0b96,$1ac,$0a85,$1ae,$0964
-	dc.w	$1b0,$0853,$1b2,$0742,$1b4,$0632,$1b6,$0521
-	dc.w	$1b8,$0511,$1ba,$0410,$1bc,$0300,$1be,$0200
+uint16_t TableEqu[] = {
+		 0xF29,0x100	// Init,Dec
+		,0x2F9,0x010
+		,0xFF9,0x110
+		,0x2B0,0x00F };
+
+copper = ptr;
+
+	setCop(	0x008e,0x2981 );
+	setCop(	0x0090,0x29c1 );
+
+r38d0 = ptr;	
+
+	setCop(	0x0092,0x0080 );
+	setCop( 0x0094,0x00c0 );
+
+Bpls = ptr;
+
+	setCop(	0x00e0,0x0000);
+	setCop( 0x00e2,0x0000);
+	setCop(	0x00e4,0x0000);
+	setCop( 0x00e6,0x0000);
+	setCop(	0x00e8,0x0000);
+	setCop( 0x00ea,0x0000);
+	setCop(	0x00ec,0x0000);
+	setCop( 0x00ee,0x0000);
+	setCop(	0x00f0,0x0000);
+	setCop( 0x00f2,0x0000);
+	setCop(	0x0100,0x5200);
+	setCop( 0x0102,0x0000);	//	 5 bitplanes
+	setCop(	0x0104,0x0033);
+	setCop( 0x01FC,0x0000);
+	setCop(	0x10c,0x11,0x106,0);
+
+Mod = ptr;
+
+	setCop( 0x0108,0x00aa );
+	setCop( 0x010a,0x00aa );
+
+Sprt = ptr;
+
+	setCop(	0x120,0 );
+	setCop( 0x122,0 );
+	setCop(	0x124,0 );
+	setCop(	0x126,0 );
+	setCop(	0x128,0 );
+	setCop(	0x12a,0 );
+	setCop(	0x12c,0 );
+	setCop(	0x12e,0 );
+	setCop(	0x130,0 );
+	setCop(	0x132,0 );
+	setCop(	0x134,0 );
+	setCop(	0x136,0 );
+	setCop(	0x138,0 );
+	setCop(	0x13a,0 );
+	setCop(	0x13c,0 );
+	setCop(	0x13e,0 );
+	setCop(	0x180,0x033a );
+	setCop( 0x182,0x0fff );
+
+Coul = ptr;
+
+	setCop(	0x184,0xeef );
+	setCop(	0x186,0x0ccf );
+	setCop(	0x188,0x0bbf );
+	setCop(	0x18a,0x09af );
+	setCop(	0x18c,0x088f );
+	setCop(	0x18e,0x067f );
+	setCop(	0x190,0x055d );
+	setCop(	0x192,0x044c );
+	setCop(	0x194,0x033a );
+	setCop(	0x196,0x0229 );
+	setCop(	0x198,0x0117 );
+	setCop(	0x19a,0x0116 );
+	setCop(	0x19c,0x0004 );
+	setCop(	0x19e,0x0003 );
+	setCop(	0x1a0,0x0ffc );
+	setCop(	0x1a2,0x0eea );
+	setCop(	0x1a4,0x0dd9 );
+	setCop(	0x1a6,0x0cb8 );
+	setCop(	0x1a8,0x0ba7 );
+	setCop(	0x1aa,0x0b96 );
+	setCop(	0x1ac,0x0a85 );
+	setCop(	0x1ae,0x0964 );
+	setCop(	0x1b0,0x0853 );
+	setCop(	0x1b2,0x0742 );
+	setCop(	0x1b4,0x0632 );
+	setCop(	0x1b6,0x0521 );
+	setCop(	0x1b8,0x0511 );
+	setCop(	0x1ba,0x0410 );
+	setCop(	0x1bc,0x0300 );
+	setCop(	0x1be,0x0200 );
 
 
 ; Origine EEF
 ; 55D,358,55d
 
-coul0:	dc.w	$500f,$fffe,$184,$eef
+coul0:	dc.w	0x500f,0xfffe,0x184,0xeef
 
-coul1:	dc.w	$930f,$fffe,$184,$eef
-coul2:	dc.w	$9c0f,$fffe,$184,$eef
-coul3:	dc.w	$a50f,$fffe,$184,$eef
-coul4:	dc.w	$ae0f,$fffe,$184,$eef
-coul5:	dc.w	$b70f,$fffe,$184,$eef
-coul6:	dc.w	$c00f,$fffe,$184,$eef
-coul7:	dc.w	$c90f,$fffe,$184,$eef
-	dc.w	$ce0f,$fffe,$180,$229
-coul8:	dc.w	$d20f,$fffe,$184,$eef
-coul9:	dc.w	$db0f,$fffe,$184,$eef
-coul10:	dc.w	$e40f,$fffe,$184,$eef
+coul1 = ptr; 
+	setCop( 0x930f,0xfffe );
+	setCop( 0x184,0xeef );
 
-	dc.w	$ef0f,$fffe
-Eq1:	dc.w	$184,$eef
-	dc.w	$1B8,$511
-	dc.w	$1BA,$410
-	dc.w	$1BC,$300
+coul2 = ptr; 
+	setCop( 0x9c0f,0xfffe );
+	setCop( 0x184,0xeef );
 
-	dc.w	$ffff,$ffde
-	dc.w	$100f,$fffe,$1b8,$511
+coul3 = ptr; 
+	setCop( 0xa50f,0xfffe );
+	setCop( 0x184,0xeef );
 
-	dc.l	-2
+coul4 = ptr; 
+	setCop( 0xae0f,0xfffe );
+	setCop( 0x184,0xeef );
 
-Tcoul:	dc.l	coul1,coul2,coul3,coul4
-	dc.l	coul5,coul6,coul7,coul8,coul9
+coul5 = ptr; 
+	setCop( 0xb70f,0xfffe );
+	setCop( 0x184,0xeef );
 
-tmm:	dc.l	mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9
+coul6 = ptr; 
+	setCop( 0xc00f,0xfffe );
+	setCop( 0x184,0xeef );
 
-mm1:	incbin	'mod.status'
-mm2:	incbin	'mod.adel'
-mm3:	incbin	'mod.compote'
-mm4:	incbin	'mod.banzai'
-mm5:	incbin	'mod.milk'
-mm6:	incbin	'mod.jambon'
-mm7:	incbin	'mod.atom'
-mm8:	incbin	'mod.computer'
-mm9:	incbin	'mod.track'
+coul7 = ptr;
+	setCop( 0xc90f,0xfffe );
+	setCop( 0x184,0xeef );
+	setCop( 0xce0f,0xfffe );
+	setCop( 0x180,0x229 );
 
-mt_data:	dc.l	mm1
+coul8 = ptr; 
+	setCop( 0xd20f,0xfffe ); 
+	setCop( 0x184,0xeef );
 
-Present:	incbin	'RB.Present'
+coul9 = ptr; 
+	setCop( 0xdb0f,0xfffe ); 
+	setCop( 0x184,0xeef );
 
-Font:	incbin	'RB.Fonte8'
-PicN:	blk.b	18*5*256,0
-Nounou:	incbin	'RB.Nounours'
-	blk.b	18*5*187,0
-Pic:	incbin	'RB.Fond'
-Scr1:	blk.b	42*5*12,0
-Buffer:	blk.b	42*5*12,0
-finintro:
+coul10 = ptr; 
+
+	setCop( 0xe40f,0xfffe ); 
+	setCop( 0x184,0xeef );
+
+	setCop(	0xef0f,0xfffe );
+
+Eq1 = ptr;
+
+	setCop( 0x184,0xeef );
+	setCop( 0x1B8,0x511 );
+	setCop( 0x1BA,0x410 );
+	setCop( 0x1BC,0x300 );
+
+	setCop(	0xffff,0xffde );
+	setCop(	0x100f,0xfffe );
+	setCop( 0x1b8,0x511 );
+
+	setCop( 0xFFFF,0xFFFE );
+}
+
+void *Tcoul[]={ coul1,coul2,coul3,coul4,coul5,coul6,coul7,coul8,coul9 };
+
+void load_bin()
+{
+	mm1 = load_module("mod.status");											//	mm1:	incbin	'mod.status'
+	mm2 = load_module("mod.adel");											//	mm2:	incbin	'mod.adel'
+	mm3 = load_module("mod.compote");											//	mm3:	incbin	'mod.compote'
+	mm4 = load_module("mod.banzai");											//	mm4:	incbin	'mod.banzai'
+	mm5 = load_module("mod.milk");											//	mm5:	incbin	'mod.milk'
+	mm6 = load_module("mod.jambon");											//	mm6:	incbin	'mod.jambon'
+	mm7 = load_module("mod.atom");											//	mm7:	incbin	'mod.atom'
+	mm8 = load_module("mod.computer");										//	mm8:	incbin	'mod.computer'
+	mm9 = load_module("mod.track");											//	mm9:	incbin	'mod.track'
+};
+
+void *tmm[]	= {mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9};
+
+void *mt_data=mm1;
+
+void load_bin2()
+{
+	int screenSize = 42*5*12;
+
+	Present	= load_file("RB.Present",0);										//	Present:	incbin	'RB.Present'
+	Font = load_file("RB.Fonte8",18*5*256, &FontE);								//	Font:	incbin	'RB.Fonte8'
+	PicN = FontE - 18*5*256;													//	PicN:	blk.b	18*5*256,0
+	PicNE = FontE;
+	FontE -= 18*5*256;
+
+	Nounou = load_file("RB.Nounours",18*5*187, &NounouE);							//	Nounou:	incbin	'RB.Nounours'
+																				//	blk.b	18*5*187,0
+
+	Pic = load_file("RB.Found",	screenSize * 2 , &PicE );						//	Pic:	incbin	'RB.Fond'
+	Scr1 = PicE - screenSize * 2;												//	Scr1:	blk.b	42*5*12,0
+	Scr1E = PicE - screenSize;
+	Buffer = PicE - screenSize;													//	Buffer:	blk.b	42*5*12,0
+	BufferE = PicE;
+	Scr1E -= (screenSize * 2);
+}
+
+//finintro:
