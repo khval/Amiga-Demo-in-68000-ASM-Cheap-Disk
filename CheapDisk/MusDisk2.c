@@ -4,8 +4,8 @@
 													//	;	Assemble avec ASM-One V1.20 By T.F.A.
 													//	
 													//	
-													//		section fast,code
-													//	
+void code()											//		section fast,code
+{													//	
 													//	r:	movem.l	d0-d7/a0-a6,-(a7)
 													//	
 													//		clr.l	0
@@ -135,18 +135,18 @@
 													//		move.l	#Pic,d0
 													//		lea	Bpls+6,a0
 													//		moveq	#5-1,d1
-													//	CopyBpls2:
+	for(d1=5;d1;d1--){								//	CopyBpls2:
 													//		move	d0,(a0)
 													//		swap	d0
 													//		move	d0,-4(a0)
 													//		swap	d0
 													//		add.l	#42,d0
 													//		addq.l	#8,a0
-													//		dbf	d1,CopyBpls2
+	}												//		dbf	d1,CopyBpls2
 													//	
 													//		move	#$F90,Coul10+6
 													//	
-													//		bsr	SaveFond
+	SaveFound();									//		bsr	SaveFond
 													//	
 													//	souris:	cmp.b	#200,$dff006
 													//		bne.b	Souris
@@ -463,52 +463,61 @@
 													//		rts
 													//	
 													//	;====================================================================
-													//	SaveFond:
-													//		lea	Scr1-(15*42*5)+14,a0
-													//		lea	Buffer,a1
-													//		moveq	#12-1,d0
-													//	SF:	move	(a0),(a1)+
+void SaveFond()										//	SaveFond:
+{
+	a0 = Scr1-(15*42*5)+14;							//		lea	Scr1-(15*42*5)+14,a0
+	a1 = Buffer;									//		lea	Buffer,a1
+	d0 = 12-1;										//		moveq	#12-1,d0
+	for (d0=12;d0;d0--)
+	{												//	SF:	move	(a0),(a1)+
 													//		move	42(a0),(a1)+
 													//		move	42*2(a0),(a1)+
 													//		move	42*3(a0),(a1)+
 													//		move	42*4(a0),(a1)+
-													//		lea	42*5(a0),a0
-													//		dbf	d0,SF
-													//		rts
+		a0 += 42*5;									//		lea	42*5(a0),a0
+	}												//		dbf	d0,SF
+}													//		rts
+
 													//	;====================================================================
-													//	RestoreFond:
-													//		lea	Buffer,a0
-													//		lea	Scr1-(15*42*5)+14,a1
+void RestoreFond()									//	RestoreFond:
+{
+	a0 = Buffer;									//		lea	Buffer,a0
+	a1 = Scr1-(15*42*5)+14;							//		lea	Scr1-(15*42*5)+14,a1
 													//		moveq	#12-1,d0
+	for(d0=12;d0;d0--)								
+	{												
 													//	RF:	move	(a0)+,(a1)
 													//		move	(a0)+,42(a1)
 													//		move	(a0)+,42*2(a1)
 													//		move	(a0)+,42*3(a1)
 													//		move	(a0)+,42*4(a1)
 													//		lea	42*5(a1),a1
-													//		dbf	d0,RF
-													//		rts
+	}												//		dbf	d0,RF
+}													//		rts
 													//	;====================================================================
-													//	PauseCafe2:	; d0=Nb secondes
+void PauseCafe2()									//	PauseCafe2:	; d0=Nb secondes
+{
 													//		cmp.b	#200,$dff006
 													//		bne	PauseCafe2
-													//	pc22:	cmp.b	#200,$dff006
+	Delay(d0);										//	pc22:	cmp.b	#200,$dff006
 													//		beq	pc22
 													//		dbf	d0,PauseCafe2
-													//		rts
+}													//		rts
 													//	;====================================================================
-													//	GereEqual:
-													//		lea	TableEqu+2,a0
-													//		lea	Eq1+2,a1
+void GereEqual()
+{													//	GereEqual:
+	a0=TableEqu+2;									//		lea	TableEqu+2,a0
+	a1=Eq1+2;										//		lea	Eq1+2,a1
 													//		moveq	#4-1,d0
-													//	CopyEqu:cmp	#$229,(a1)
-													//		beq	PasDec
-													//		move	(a0),d1
-													//		sub	d1,(a1)
-													//	PasDec:	addq.l	#4,a0
-													//		addq.l	#4,a1
-													//		dbf	d0,CopyEqu
-													//		rts
+	for (d0=4;d0;d0--) {							//	CopyEqu:cmp	#$229,(a1)
+		if ( ld_w(a1) != 0x229)	{					//		beq	PasDec
+			d1 = ld_w(a0);							//		move	(a0),d1	
+			d1 -= ld_w(a1);							//		sub	d1,(a1)
+		} // PasDec
+		a0 +=4;										//	PasDec:	addq.l	#4,a0
+		a1 +=4;										//		addq.l	#4,a1
+	}												//		dbf	d0,CopyEqu
+}													//		rts
 													//	;====================================================================
 													//	irq3:	movem.l	d0-d7/a0-a6,-(a7)
 													//		move	$dff01e,d0
@@ -671,7 +680,7 @@
 													//		CLR.W	$DFF0C8
 													//		CLR.W	$DFF0D8
 													//		MOVE.W	#$F,$DFF096
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_music
 													//		MOVEM.L	D0-D4/A0-A6,-(SP)
@@ -945,9 +954,10 @@
 													//		TST.B	mt_PosJumpFlag
 													//		BNE.S	mt_NextPosition
 													//		MOVEM.L	(SP)+,D0-D4/A0-A6
-													//		RTS
+}													//		RTS
 													//	
-													//	mt_CheckEfx
+void mt_CheckEfx() 
+{													//	mt_CheckEfx
 													//		BSR	mt_UpdateFunk
 													//		MOVE.W	n_cmd(A6),D0
 													//		AND.W	#$0FFF,D0
@@ -975,13 +985,13 @@
 													//		CMP.B	#$A,D0
 													//		BEQ	mt_VolumeSlide
 													//	mt_Return2
-													//		RTS
+}													//		RTS
 													//	
-													//	mt_PerNop
-													//		MOVE.W	n_period(A6),6(A5)
-													//		RTS
+void mt_PerNop() {									//	mt_PerNop
+	a5 = ld_w(a6+n_period);							//		MOVE.W	n_period(A6),6(A5)
+}													//		RTS
 													//	
-													//	mt_Arpeggio
+void mt_Arpeggio() {								//	mt_Arpeggio
 													//		MOVEQ	#0,D0
 													//		MOVE.B	mt_counter(PC),D0
 													//		DIVS	#3,D0
@@ -1021,13 +1031,13 @@
 													//		BHS.S	mt_Arpeggio4
 													//		ADDQ.L	#2,A0
 													//		DBRA	D7,mt_arploop
-													//		RTS
+}													//		RTS
 													//	
-													//	mt_Arpeggio4
+void mt_Arpeggio4()	{								//	mt_Arpeggio4
 													//		MOVE.W	D2,6(A5)
-													//		RTS
+}													//		RTS
 													//	
-													//	mt_FinePortaUp
+void mt_FinePortaUp() {								//	mt_FinePortaUp
 													//		TST.B	mt_counter
 													//		BNE.S	mt_Return2
 													//		MOVE.B	#$0F,mt_LowMask
@@ -1047,9 +1057,9 @@
 													//		MOVE.W	n_period(A6),D0
 													//		AND.W	#$0FFF,D0
 													//		MOVE.W	D0,6(A5)
-													//		RTS	
+}													//		RTS	
 													//	 
-													//	mt_FinePortaDown
+void mt_FinePortaDown() {							//	mt_FinePortaDown
 													//		TST.B	mt_counter
 													//		BNE	mt_Return2
 													//		MOVE.B	#$0F,mt_LowMask
@@ -1069,9 +1079,9 @@
 													//		MOVE.W	n_period(A6),D0
 													//		AND.W	#$0FFF,D0
 													//		MOVE.W	D0,6(A5)
-													//		RTS
+}													//		RTS
 													//	
-													//	mt_SetTonePorta
+void mt_SetTonePorta() {							//	mt_SetTonePorta
 													//		MOVE.L	A0,-(SP)
 													//		MOVE.W	(A6),D2
 													//		AND.W	#$0FFF,D2
@@ -1105,11 +1115,11 @@
 													//		BEQ.S	mt_ClearTonePorta
 													//		BGE	mt_Return2
 													//		MOVE.B	#1,n_toneportdirec(A6)
-													//		RTS
+}													//		RTS
 													//	
-													//	mt_ClearTonePorta
+void mt_ClearTonePorta() {							//	mt_ClearTonePorta
 													//		CLR.W	n_wantedperiod(A6)
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_TonePortamento
 													//		MOVE.B	n_cmdlo(A6),D0
@@ -1162,7 +1172,7 @@
 													//		MOVE.W	(A0,D0.W),D2
 													//	mt_GlissSkip
 													//		MOVE.W	D2,6(A5) ; Set period
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_Vibrato
 													//		MOVE.B	n_cmdlo(A6),D0
@@ -1301,7 +1311,7 @@
 													//		LSR.W	#2,D0
 													//		AND.W	#$003C,D0
 													//		ADD.B	D0,n_tremolopos(A6)
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_SampleOffset
 													//		MOVEQ	#0,D0
@@ -1319,7 +1329,7 @@
 													//		RTS
 													//	mt_sofskip
 													//		MOVE.W	#$0001,n_length(A6)
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_VolumeSlide
 													//		MOVEQ	#0,D0
@@ -1335,7 +1345,7 @@
 													//	mt_vsuskip
 													//		MOVE.B	n_volume(A6),D0
 													//		MOVE.W	D0,8(A5)
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_VolSlideDown
 													//		MOVEQ	#0,D0
@@ -1348,7 +1358,7 @@
 													//	mt_vsdskip
 													//		MOVE.B	n_volume(A6),D0
 													//		MOVE.W	D0,8(A5)
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_PositionJump
 													//		MOVE.B	n_cmdlo(A6),D0
@@ -1356,7 +1366,7 @@
 													//		MOVE.B	D0,mt_SongPos
 													//	mt_pj2	CLR.B	mt_PBreakPos
 													//		ST 	mt_PosJumpFlag
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_VolumeChange
 													//		MOVEQ	#0,D0
@@ -1367,7 +1377,7 @@
 													//	mt_VolumeOk
 													//		MOVE.B	D0,n_volume(A6)
 													//		MOVE.W	D0,8(A5)
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_PatternBreak
 													//		MOVEQ	#0,D0
@@ -1381,14 +1391,14 @@
 													//		BHI.S	mt_pj2
 													//		MOVE.B	D0,mt_PBreakPos
 													//		ST	mt_PosJumpFlag
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_SetSpeed
 													//		MOVE.B	3(A6),D0
 													//		BEQ	mt_Return2
 													//		CLR.B	mt_counter
 													//		MOVE.B	D0,mt_speed
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_CheckMoreEfx
 													//		BSR	mt_UpdateFunk
@@ -1463,13 +1473,13 @@
 													//		AND.B	#$0F,D0
 													//		AND.B	#$F0,n_wavecontrol(A6)
 													//		OR.B	D0,n_wavecontrol(A6)
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_SetFineTune
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#$0F,D0
 													//		MOVE.B	D0,n_finetune(A6)
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_JumpLoop
 													//		TST.B	mt_counter
@@ -1483,7 +1493,7 @@
 													//		BEQ	mt_Return2
 													//	mt_jmploop	MOVE.B	n_pattpos(A6),mt_PBreakPos
 													//		ST	mt_PBreakFlag
-													//		RTS
+}													//		RTS
 
 													//	mt_jumpcnt
 													//		MOVE.B	D0,n_loopcount(A6)
@@ -1493,7 +1503,7 @@
 													//		MOVE.W	mt_PatternPos(PC),D0
 													//		LSR.W	#4,D0
 													//		MOVE.B	D0,n_pattpos(A6)
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_SetTremoloControl
 													//		MOVE.B	n_cmdlo(A6),D0
@@ -1501,7 +1511,7 @@
 													//		LSL.B	#4,D0
 													//		AND.B	#$0F,n_wavecontrol(A6)
 													//		OR.B	D0,n_wavecontrol(A6)
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_RetrigNote
 													//		MOVE.L	D1,-(SP)
@@ -1539,7 +1549,7 @@
 													//		MOVE.L	n_replen(A6),4(A5)
 													//	mt_rtnend
 													//		MOVE.L	(SP)+,D1
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_VolumeFineUp
 													//		TST.B	mt_counter
@@ -1565,7 +1575,7 @@
 													//		BNE	mt_Return2
 													//		CLR.B	n_volume(A6)
 													//		MOVE.W	#0,8(A5)
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_NoteDelay
 													//		MOVEQ	#0,D0
@@ -1588,7 +1598,7 @@
 													//		BNE	mt_Return2
 													//		ADDQ.B	#1,D0
 													//		MOVE.B	D0,mt_PattDelTime
-													//		RTS
+}													//		RTS
 													//	
 													//	mt_FunkIt
 													//		TST.B	mt_counter
@@ -1630,7 +1640,7 @@
 													//		MOVE.B	D0,(A0)
 													//	mt_funkend
 													//		MOVEM.L	(SP)+,A0/D1
-													//		RTS
+}													//		RTS
 
 
 uint8_t mt_FunkTable[]={ 0,5,6,7,8,10,11,13,16,19,22,26,32,43,64,128 };
