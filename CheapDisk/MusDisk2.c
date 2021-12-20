@@ -6,7 +6,7 @@
 													//	
 void code()											//		section fast,code
 {													//	
-													//	r:	movem.l	d0-d7/a0-a6,-(a7)
+	movem_push(RD0,RA6);							//	r:	movem.l	d0-d7/a0-a6,-(a7)
 													//	
 													//		clr.l	0
 													//	
@@ -22,110 +22,117 @@ void code()											//		section fast,code
 													//	;	move	d0,$9a(a5)
 													//	;	move	#$83E0,$96(a5)
 													//	
-													//		move.l	#PicN,d0
-													//		lea	Bpls+6,a0
-													//		moveq	#5-1,d1
-													//	CopyBpls:
-													//		move	d0,(a0)
-													//		swap	d0
-													//		move	d0,-4(a0)
-													//		swap	d0
-													//		add.l	#18,d0
-													//		addq.l	#8,a0
-													//		dbf	d1,CopyBpls
+	d0 = PicN;										//		move.l	#PicN,d0
+	a0 = Bpls+6;									//		lea	Bpls+6,a0
+	d1 = 5;											//		moveq	#5-1,d1
+	for (;d1;d1--)									//	CopyBpls:
+	{
+		st_w(a0,d0);								//		move	d0,(a0)
+		swap_d(0);									//		swap	d0
+		st_w(a0-4,d0);								//		move	d0,-4(a0)
+		dwap_d(0);									//		swap	d0
+		d0+=18;										//		add.l	#18,d0
+		a0+=8;										//		addq.l	#8,a0
+	}												//		dbf	d1,CopyBpls
 													//	
-													//		move	#18*4,Mod+2
-													//		move	#18*4,Mod+6
+	st_w(Mod+2,18*4);								//		move	#18*4,Mod+2
+	st_w(Mod+6,18*4);								//		move	#18*4,Mod+6
 													//	
 													//		move.l	4.w,a6
 													//		jsr	-132(a6)
-													//		bsr	mt_init
+	mt_init();										//		bsr	mt_init
 													//		move.l	$6c.w,saveirq3+2
 													//		move.l	#irq3,$6c.w
 													//	
 													//	
-													//		lea	Bpls2+6,a0
-													//		move.l	#Present,d0
-													//		moveq	#3-1,d1
-													//	CopPres:move	d0,(a0)
+	a0 = Bpls2+6;									//		lea	Bpls2+6,a0
+	d0 = Present;									//		move.l	#Present,d0
+	for(d1=3;d1;D1--)								//		moveq	#3-1,d1
+	{
+		st_w(a0,D0.lw);								//	CopPres:move	d0,(a0)
 													//		swap	d0
-													//		move	d0,-4(a0)
+		st_w(a0-4,D0.hw);							//		move	d0,-4(a0)
 													//		swap	d0
-													//		add.l	#28,d0
-													//		addq.l	#8,a0
-													//		dbf	d1,CopPres
+		d0+=28;										//		add.l	#28,d0
+		a0+=8;										//		addq.l	#8,a0
+	}												//		dbf	d1,CopPres
 													//	
 													//	
-													//		lea	$dff000,a5
-													//		lea	copper2,a0
-													//		move.l	a0,$80(a5)
+	a5 = custom;									//		lea	$dff000,a5
+	a0 = copper2;									//		lea	copper2,a0
+	st_l(a5+0x80,a0);								//		move.l	a0,$80(a5)
 													//		clr	$88(a5)
 													//	
-													//		move	#50*2,d0
-													//		bsr	PauseCafe2
-													//		move	#$b200,Com+2
+	d0=50*2;										//		move	#50*2,d0
+	PauseCafe2();									//		bsr	PauseCafe2
+	st_w(Com+2,0xb200);								//		move	#$b200,Com+2
 													//	
-													//		moveq	#2-1,d7
-													//	President:
-													//		move	#62,d0
-													//		bsr	PauseCafe2
-													//		add.b	#28,Copper2+6
-													//		dbf	d7,President
+	for (d7=2;d7;d7--)								//		moveq	#2-1,d7
+	{												//	President:
+		d0=62;										//		move	#62,d0
+		PauseCafe2();								//		bsr	PauseCafe2
+		st_b(Copper2+6,28);							//		add.b	#28,Copper2+6
+	}												//		dbf	d7,President
 													//	
-													//		move	#62,d0
-													//		bsr	PauseCafe2
+	d0=62;											//		move	#62,d0
+	PauseCafe2();									//		bsr	PauseCafe2
 													//	
-													//		lea	$dff000,a5
-													//		lea	copper,a0
-													//		move.l	a0,$80(a5)
+	a5 = custom;									//		lea	$dff000,a5
+	a0 = copper;									//		lea	copper,a0
+	st_l(a5+0x80);									//		move.l	a0,$80(a5)
 													//		clr	$88(a5)
 													//	
-													//		move	#100,d0
-													//		bsr	PauseCafe2
+	d0=100;											//		move	#100,d0
+	PauseCafe2();									//		bsr	PauseCafe2
 													//	
-													//		move	#431,d7
+	d7 = 431;										//		move	#431,d7
 													//	
-													//	M2:	cmp.b	#80,$dff006
-													//		bne	M2
+	do {											//	M2:	cmp.b	#80,$dff006
+		WaitMouse();								//		bne	M2
 													//	M3:	cmp.b	#80,$dff006
 													//		beq	M3
-													//		moveq	#5-1,d0
-													//		lea	Bpls+6,a0
-													//	Monte:	move	-4(a0),d1
-													//		swap	d1
-													//		move	(a0),d1
-													//		add.l	#18*5,d1
-													//		move	d1,(a0)
-													//		swap	d1
-													//		move	d1,-4(a0)
-													//		addq.l	#8,a0
-													//		dbf	d0,Monte
-													//		subq	#1,d7
-													//		bpl	M2
+		d0 = 5;										//		moveq	#5-1,d0
+		a0 = Bpls+6;								//		lea	Bpls+6,a0
+		for (;d0;d0--)								//	Monte:
+		{
+			d1= ld_w(a0-4);							//		move	-4(a0),d1
+			swap_d(1);								//		swap	d1
+			st_w(a0,D1.lw);							//		move	(a0),d1
+			d1 += 18*5;								//		add.l	#18*5,d1
+			st_w(a0,d1);							//		move	d1,(a0)
+			swap_d(1);								//		swap	d1
+			st_w(a0-4,d1);							//		move	d1,-4(a0)
+			a0+=8;									//		addq.l	#8,a0
+		}											//		dbf	d0,Monte
+		d7-=1;										//		subq	#1,d7
+	} while (d7>0);									//		bpl	M2
 													//	
-													//		move.b	#-1,Auto
+	Auto = -1;										//		move.b	#-1,Auto
 													//	
-													//		move	#50,d0
-													//		bsr	PauseCafe2
+	d0=50;											//		move	#50,d0
+	PauseCafe2();									//		bsr	PauseCafe2
 													//	
-													//		bsr	EffCoul
-													//		move	#$358,Coul1+6
+	EffCoul();										//		bsr	EffCoul
+	st_w(Coul1+6,0x358);							//		move	#$358,Coul1+6
 													//	
-													//		move.l	#Pointeur,d0
+	// we don't have sprites so ignore...			//		move.l	#Pointeur,d0
 													//		lea	Sprt+6,a0
 													//		move	d0,(a0)
 													//		swap	d0
 													//		move	d0,-4(a0)
 													//	
-													//		lea	Nounou+[18*5*176],a0
-													//		lea	Pic+18,a1
-													//		move	#[80*5]-1,d0
-													//	CopyPano:
-													//		moveq	#9-1,d1
-													//	CopyPan:move	(a0)+,(a1)+
-													//		dbf	d1,CopyPan
-													//		lea	24(a1),a1
-													//		dbf	d0,CopyPano
+	a0 = Nounou + (18*5*176);						//		lea	Nounou+[18*5*176],a0
+	a1 = Pic + 18;									//		lea	Pic+18,a1
+	d0 = 80*5;										//		move	#[80*5]-1,d0
+	for(d0;d0--)									//	CopyPano:
+	{
+		d1 = 9;										//		moveq	#9-1,d1
+		for(;d1:d1--)								//	CopyPan:
+		{
+			st_w(a1,ld_w(a0)); a0+=2; a1+=2;		//		move	(a0)+,(a1)+
+		}											//		dbf	d1,CopyPan
+		a1 += 24;									//		lea	24(a1),a1
+	}												//		dbf	d0,CopyPano
 													//	
 													//		move	#$aa,Mod+2
 													//		move	#$aa,Mod+6
