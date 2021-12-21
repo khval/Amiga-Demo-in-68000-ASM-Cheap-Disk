@@ -87,8 +87,9 @@ void code()											//		section fast,code
 													//	
 	d7 = 431;										//		move	#431,d7
 													//	
-	do {											//	M2:	cmp.b	#80,$dff006
-		WaitMouse();								//		bne	M2
+	do {
+		WaitTOF();									//	M2:	cmp.b	#80,$dff006
+													//		bne	M2
 													//	M3:	cmp.b	#80,$dff006
 													//		beq	M3
 		d0 = 5;										//		moveq	#5-1,d0
@@ -134,114 +135,158 @@ void code()											//		section fast,code
 		a1 += 24;									//		lea	24(a1),a1
 	}												//		dbf	d0,CopyPano
 													//	
-													//		move	#$aa,Mod+2
-													//		move	#$aa,Mod+6
-													//		move	#$38,R38d0+2
-													//		move	#$d0,R38d0+6
+	st_w(mod+2,0xaa);								//		move	#$aa,Mod+2
+	st_w(mod+6,0xaa);								//		move	#$aa,Mod+6
+	st_w(R38d0+2,0x38);								//		move	#$38,R38d0+2
+	st_w(R38d0+6,0xd0);								//		move	#$d0,R38d0+6
 													//	
-													//		move.l	#Pic,d0
-													//		lea	Bpls+6,a0
-													//		moveq	#5-1,d1
-	for(d1=5;d1;d1--){								//	CopyBpls2:
-													//		move	d0,(a0)
-													//		swap	d0
-													//		move	d0,-4(a0)
-													//		swap	d0
-													//		add.l	#42,d0
-													//		addq.l	#8,a0
+	d0 = Pic;										//		move.l	#Pic,d0
+	a0 = Bpls+6;									//		lea	Bpls+6,a0
+	for(d1=5;d1;d1--)								//		moveq	#5-1,d1
+	{												//	CopyBpls2:
+		st_w(a0,d0);								//		move	d0,(a0)
+		swap_d(0);									//		swap	d0
+		st_w(a0-4,d0);								//		move	d0,-4(a0)
+		swap_d(0);									//		swap	d0
+		d0 += 42;									//		add.l	#42,d0
+		a0 += 8;									//		addq.l	#8,a0
 	}												//		dbf	d1,CopyBpls2
 													//	
-													//		move	#$F90,Coul10+6
+	st_w(Coul10+6,0xF90);							//		move	#$F90,Coul10+6
 													//	
 	SaveFound();									//		bsr	SaveFond
 													//	
+	// VHPOSR is $dff006
 													//	souris:	cmp.b	#200,$dff006
 													//		bne.b	Souris
-													//	s2:	cmp.b	#200,$dff006
+	wait_beem_pos(200);								//	s2:	cmp.b	#200,$dff006
 													//		beq.b	s2
-													//	
+	// POTINP is $dff016							//	
 													//		btst	#10,$dff016
 													//		beq.b	Souris
 													//	
 													//	;	move	#$F00,$dff180
-													//		bsr.w	GereScroll
+	GereScroll();									//		bsr.w	GereScroll
 													//	;	move	#$0F0,$dff180
-													//	wBbb:	btst	#14,$dff002
+	WaitBlit();										//	wBbb:	btst	#14,$dff002
 													//		bne	Wbbb
-													//		bsr	RestoreFond
+	RestoreFond();									//		bsr	RestoreFond
 													//	;	move	#$00,$dff180
 													//	
-													//		bsr	GereEqual
+	GereEqual();									//		bsr	GereEqual
 													//	
-													//		btst	#6,$bfe001
-													//		bne	PasSouris
+	if (!CheckMouse())								//		btst	#6,$bfe001
+	{
+		PasSouris();								//		bne	PasSouris
+		return;
+	}
 													//	
-													//		moveq	#0,d1
-													//		move	MouseY,d1
+	D1.hw = 0;										//		moveq	#0,d1
+	D1.lw = MouseY();								//		move	MouseY,d1
 													//		cmp	#$92+81,d1
-													//		bhs	PasSong
+	if (d1=>0x92+81)
+	{
+		PasSong();									//		bhs	PasSong
+		return;
+	}
 													//	
-													//		bsr	EffCoul
-													//		moveq	#0,d1
-													//		move	MouseY,d1
-													//		sub	#$92,d1
+	EffCoul();										//		bsr	EffCoul
+	D1.hw = 0;										//		moveq	#0,d1
+	D1.lw = MouseY;									//		move	MouseY,d1
+	d1 -= 0x92;										//		sub	#$92,d1
 													//		divu	#9,d1
+	D1.hw = D1.lw % 9;
+	D1.lw /= 9;
 													//		ext.l	d1		; 0-9
-													//		lsl.l	#2,d1		; *4
-													//		lea	Tcoul,a0
-													//		move.l	(a0,d1),a0
-													//		move	#$358,6(a0)
+	d1 = D1.lw | ((D1.lw & 0x8000) ? 0xFFFF0000 : 0x00000000);
+
+	d1 <<= 2;										//		lsl.l	#2,d1		; *4
+	a0 = Tcoul;										//		lea	Tcoul,a0
+	st_l(a0,ls_l(a0+d1));							//		move.l	(a0,d1),a0
+	st_w(a0+6,0x358);								//		move	#$358,6(a0)
 													//	
-													//		moveq	#0,d0
-													//		move	MouseY,d0
-													//		sub	#$92,d0
+	D1.hw = 0;										//		moveq	#0,d0
+	D1.lw = MouseY;									//		move	MouseY,d0
+	d0 += 0x92;										//		sub	#$92,d0
 													//		divu	#9,d0
+	D0.hw = D0.lw % 9;
+	D0.lw /= 9;
 													//		ext.l	d0
-													//		lsl.l	#2,d0
-													//		lea	tmm,a0
-													//		move.l	(a0,d0),d0
-													//		cmp.l	MT_DATA,d0
-													//		beq	PasSouris
+	d0 = D0.lw | ((D0.lw & 0x8000) ? 0xFFFF0000 : 0x00000000);
+
+	d0 <<= 2;										//		lsl.l	#2,d0
+	a0 = tmm;										//		lea	tmm,a0
+	d0 = ld_l(a0+d0);								//		move.l	(a0,d0),d0
+
+	if (MT_DATA != d0)								//		cmp.l	MT_DATA,d0
+	{												//		beq	PasSouris
 													//	
 													//		move	#-1,Permit
-													//		bsr	MT_END
-													//		move.l	d0,MT_DATA
-													//		bsr	MT_INIT
+		MT_END();									//		bsr	MT_END
+		MT_DATA = d0;								//		move.l	d0,MT_DATA
+		MT_INIT();									//		bsr	MT_INIT
 													//		clr	Permit
 													//	
-													//		bra	PasSouris
+	};												//		bra	PasSouris
 													//	
-													//	PasSong:cmp	#$e6,d1
+void PasSong()
+{													//	PasSong:cmp	#$e6,d1
 													//		blo	PasSouris
 													//	
-													//		moveq	#0,d0
-													//		move	MouseX,d0
-													//		sub	#$127,d0
-													//		lsr	#5,d0		; 0 - 4
-													//		beq	Play
+	d0 = 0;											//		moveq	#0,d0
+	d0 = MouseX;									//		move	MouseX,d0
+	d0 -= 0x0127;									//		sub	#$127,d0
+	d0 <<= 5;										//		lsr	#5,d0		; 0 - 4
+	if (d0 == 5) Play();							//		beq	Play
 													//		cmp	#1,d0
-													//		beq	Pause
+	if (d0 == 1) Pause();							//		beq	Pause
 													//		cmp	#2,d0
-													//		beq	Filter
-													//	
-													//	Info:	move.l	#TexteInfo,PTtexte
+	if (d0 == 2) Filter();							//		beq	Filter
+
+	Info();
+}
+
+void Info()
+{
+	st_l(PTtexte,TexteInfo);						//	
+	PasSouris();									//	Info:	move.l	#TexteInfo,PTtexte
 													//		bra	PasSouris
-													//	Play:	clr	Permit
-													//		bra	PasSouris
-													//	Pause:	move	#-1,Permit
-													//		move	#$F,$dff096
-													//		bra	PasSouris
-													//	Filter:	cmp.l	#20,Wait
-													//		blo	PasSouris
+}
+
+void Play()
+{
+	PasSouris();									//	Play:	clr	Permit
+}													//		bra	PasSouris
+
+void Pause()
+{													//	Pause:	move	#-1,Permit
+	PasSouris();									//		move	#$F,$dff096
+}													//		bra	PasSouris
+
+void Filter()										//	Filter:
+{													
+	if (20<Wait)									//		cmp.l	#20,Wait
+		PasSouris();								//		blo	PasSouris
 													//		eor.b	#2,$bfe001
 													//		clr.l	Wait
-													//	PasSouris:
+	PasSouris();
+}
+
+void PasSouris()		
+{													//	PasSouris:
+
+	// 0xbfec01 = CIAA serial data register (connected to keyboard)
+
 													//	
 													//		move.b	$bfec01,d0
 													//		cmp.b	#$75,d0
 													//		bne	souris
-													//	
-													//	fin:	lea	Ritchy_Volumes(pc),a0
+}													//	
+
+
+void fin()
+{
+	a0 = Ritchy_Volumes;							//	fin:	lea	Ritchy_Volumes(pc),a0
 													//		move	(a0)+,d0		; Volumes 4 voies
 													//		move	(a0)+,d1
 													//		move	(a0)+,d2
@@ -250,7 +295,8 @@ void code()											//		section fast,code
 													//	
 													//		lea	$dff0a8,a0
 													//		moveq	#0,d5
-													//	Decrease:
+	do												//	Decrease:
+	{
 													//		move	d0,(a0)
 													//		move	d1,$10(a0)
 													//		move	d2,$20(a0)
@@ -271,36 +317,41 @@ void code()											//		section fast,code
 													//		tst	d0		; Decremente volumes
 													//		beq	Vol0
 													//		subq	#1,d0
-													//	Vol0:	tst	d1
+	if (d1) d1--;									//	Vol0:	tst	d1
 													//		beq	Vol1
 													//		subq	#1,d1
-													//	Vol1:	tst	d2
+	if (d2) d2--;									//	Vol1:	tst	d2
 													//		beq	Vol2
 													//		subq	#1,d2
-													//	Vol2:	tst	d3
+	if (d3) d3--;									//	Vol2:	tst	d3
 													//		beq	Vol3
 													//		subq	#1,d3
 													//	
 													//	
-													//	Vol3:	movem.l	d0-d5/a0,-(sp)
-													//		bsr	FonduQuitte
-													//		movem.l	(sp)+,d0-d5/a0
+		movem_push(RD0,RD5);						//	Vol3:	movem.l	d0-d5/a0,-(sp)
+		movem_push(RA0,RA0);	
+	
+		FonduQuitte();								//		bsr	FonduQuitte
+
+		movem_pull(RA0,RA0);						//		movem.l	(sp)+,d0-d5/a0
+		movem_pull(RD0,RA6);
 													//	
-													//	NONO1:	not	d5
+		d5 = !d5;									//	NONO1:	not	d5
 													//	
-													//		move	d0,d4
-													//		add	d1,d4
-													//		add	d2,d4
-													//		add	d3,d4
-													//		bne	Decrease	; Jusqu'a tous a 0 !!!
+		d4 = d0;									//		move	d0,d4
+		d4 += d1;									//		add	d1,d4
+		d4 += d2;									//		add	d2,d4
+		d4 += d3;									//		add	d3,d4
+
+	} while (d4>0);									//		bne	Decrease	; Jusqu'a tous a 0 !!!
 													//	
 													//		move.l	saveirq3+2,$6c.w
-													//		bsr	MT_end
+	MT_end();										//		bsr	MT_end
 													//	
-													//		move.l	4.w,a6
+	a6 = ld_l(0x00000004);							//		move.l	4.w,a6
 													//		jsr	-138(a6)
 													//	
-													//		lea	$dff000,a5
+	a5 = custom;									//		lea	$dff000,a5
 													//	
 													//	;	move	#$7fff,d0
 													//	;	move	d0,$9a(a5)
@@ -309,22 +360,23 @@ void code()											//		section fast,code
 													//	;	move	(a0)+,$9a(a5)
 													//	;	move	(a0),$96(a5)
 													//	
-													//		move.l	4.w,a6
-													//		lea	GfxName(pc),a1
+	//	open library code..	==>						//		move.l	4.w,a6
+	//	(hmmm.. no close library???)				//		lea	GfxName(pc),a1
 													//		jsr	-408(a6)
 													//		move.l	d0,a0
 													//		move.l	d0,GfxBase
-													//		move.l	38(a0),$80(a5)
+	// I think restore display... ==>				//		move.l	38(a0),$80(a5)
 													//		clr	$88(a5)
 													//	
-													//		movem.l	(a7)+,d0-d7/a0-a6
-													//		moveq	#0,d0
-													//		rts
+	movem_pull(RD0,RA6);							//		movem.l	(a7)+,d0-d7/a0-a6	
+	d0 = 0;											//		moveq	#0,d0
+}													//		rts
 													//	
-													//	FonduQuitte:
-													//		lea	Copper,a0
+void FonduQuitte()									//	FonduQuitte:
+{
+	a0 = Copper;									//		lea	Copper,a0
 													//	
-													//	Fondu:	move.l	(a0)+,d0
+	d0 = ld_l(a0); a0+=4;							//	Fondu:	move.l	(a0)+,d0
 													//		cmp.l	#-2,d0
 													//		beq	FinPass
 													//	
@@ -451,36 +503,45 @@ void code()											//		section fast,code
 													//		dbf	d1,CopEsp
 													//		rts
 													//	
-													//	Fontu:	lea	Font,a0
-													//		lea	Scr1-(15*42*5)+40,a1
-													//		add.l	d0,a0		; a0 sur bonne fonte
-													//		move	#[12*5]-1,d1
-													//	CopyF:	move.b	(a0),(a1)
-													//		lea	44(a0),a0
-													//		lea	42(a1),a1
-													//		dbf	d1,CopyF
-													//		rts
+void Fontu()										//	Fontu:
+{
+	a0 = Font;										//		lea	Font,a0
+	a1 = Scr1-(15*42*5)+40;							//		lea	Scr1-(15*42*5)+40,a1
+	a1 += d0;										//		add.l	d0,a0		; a0 sur bonne fonte
+	d1 = (12*5);									//		move	#[12*5]-1,d1
+	for (;d1;d1--)									//	CopyF:
+	{
+		st_b(a1,ld_b(a0));							//		move.b	(a0),(a1)
+		a0 += 44;									//		lea	44(a0),a0
+		a1 += 42;									//		lea	42(a1),a1
+	}												//		dbf	d1,CopyF
+}													//		rts
 													//	
 													//	
-													//	EffCoul:lea	Tcoul,a0
-													//		moveq	#9-1,d0
-													//	DelCoul:move.l	(a0)+,a1
-													//		move	#$55d,6(a1)
-													//		dbf	d0,DelCoul
-													//		rts
+void EffCoul()										//	EffCoul:
+{
+	a0 = Tcoul;										//		lea	Tcoul,a0
+	for (d0=9;d0;d0--)								//		moveq	#9-1,d0
+	{												//	DelCoul:
+		a1 = ld_l(a0); a0+=4;						//		move.l	(a0)+,a1
+		st_w(a1+6,0xFFD)							//		move	#$55d,6(a1)
+	}												//		dbf	d0,DelCoul
+}													//		rts
 													//	
 													//	;====================================================================
+
 void SaveFond()										//	SaveFond:
 {
 	a0 = Scr1-(15*42*5)+14;							//		lea	Scr1-(15*42*5)+14,a0
 	a1 = Buffer;									//		lea	Buffer,a1
 	d0 = 12-1;										//		moveq	#12-1,d0
 	for (d0=12;d0;d0--)
-	{												//	SF:	move	(a0),(a1)+
-													//		move	42(a0),(a1)+
-													//		move	42*2(a0),(a1)+
-													//		move	42*3(a0),(a1)+
-													//		move	42*4(a0),(a1)+
+	{
+		st_w(a1,ld_w(a0)); a1+=2;					//	SF:	move	(a0),(a1)+
+		st_w(a1,ld_w(a0+42)); a1+=2;				//		move	42(a0),(a1)+
+		st_w(a1,ld_w(a0+42*2)); a1+=2;				//		move	42*2(a0),(a1)+
+		st_w(a1,ld_w(a0+42*3)); a1+=2;				//		move	42*3(a0),(a1)+
+		st_w(a1,ld_w(a0+72*4)); a1+=2;				//		move	42*4(a0),(a1)+
 		a0 += 42*5;									//		lea	42*5(a0),a0
 	}												//		dbf	d0,SF
 }													//		rts
@@ -493,22 +554,24 @@ void RestoreFond()									//	RestoreFond:
 													//		moveq	#12-1,d0
 	for(d0=12;d0;d0--)								
 	{												
-													//	RF:	move	(a0)+,(a1)
-													//		move	(a0)+,42(a1)
-													//		move	(a0)+,42*2(a1)
-													//		move	(a0)+,42*3(a1)
-													//		move	(a0)+,42*4(a1)
-													//		lea	42*5(a1),a1
+		st_w(a1,ld_w(a0)); a0+=2;					//	RF:	move	(a0)+,(a1)
+		st_w(a1+42,ld_w(a0)); a0+=2;				//		move	(a0)+,42(a1)
+		st_w(a1+42*2,ld_w(a0)); a0+=2;				//		move	(a0)+,42*2(a1)
+		st_w(a1+42*3,ld_w(a0)); a0+=2;				//		move	(a0)+,42*3(a1)
+		st_w(a1+42*4,ld_w(a0)); a0+=2;				//		move	(a0)+,42*4(a1)
+		a1 += 42*5;									//		lea	42*5(a1),a1
 	}												//		dbf	d0,RF
 }													//		rts
 													//	;====================================================================
 void PauseCafe2()									//	PauseCafe2:	; d0=Nb secondes
 {
-													//		cmp.b	#200,$dff006
+	for (;d0;d0--)
+	{
+		WaitTOF();									//		cmp.b	#200,$dff006
 													//		bne	PauseCafe2
-	Delay(d0);										//	pc22:	cmp.b	#200,$dff006
+													//	pc22:	cmp.b	#200,$dff006
 													//		beq	pc22
-													//		dbf	d0,PauseCafe2
+	}												//		dbf	d0,PauseCafe2
 }													//		rts
 													//	;====================================================================
 void GereEqual()
@@ -620,32 +683,32 @@ void GereEqual()
 													//	
 													//	;DMAWait = 300 ; Set this as low as possible without losing low notes.
 													//	
-													//	n_note		EQU	0  ; W
-													//	n_cmd		EQU	2  ; W
-													//	n_cmdlo		EQU	3  ; B
-													//	n_start		EQU	4  ; L
-													//	n_length	EQU	8  ; W
-													//	n_loopstart	EQU	10 ; L
-													//	n_replen	EQU	14 ; W
-													//	n_period	EQU	16 ; W
-													//	n_finetune	EQU	18 ; B
-													//	n_volume	EQU	19 ; B
-													//	n_dmabit	EQU	20 ; W
-													//	n_toneportdirec	EQU	22 ; B
-													//	n_toneportspeed	EQU	23 ; B
-													//	n_wantedperiod	EQU	24 ; W
-													//	n_vibratocmd	EQU	26 ; B
-													//	n_vibratopos	EQU	27 ; B
-													//	n_tremolocmd	EQU	28 ; B
-													//	n_tremolopos	EQU	29 ; B
-													//	n_wavecontrol	EQU	30 ; B
-													//	n_glissfunk	EQU	31 ; B
-													//	n_sampleoffset	EQU	32 ; B
-													//	n_pattpos	EQU	33 ; B
-													//	n_loopcount	EQU	34 ; B
-													//	n_funkoffset	EQU	35 ; B
-													//	n_wavestart	EQU	36 ; L
-													//	n_reallength	EQU	40 ; W
+#define n_note				0 						//	n_note		EQU	0  ; W
+#define n_cmd				2 						//	n_cmd		EQU	2  ; W
+#define n_cmdlo				3 						//	n_cmdlo		EQU	3  ; B
+#define n_start				4 						//	n_start		EQU	4  ; L
+#define n_length			8 						//	n_length	EQU	8  ; W
+#define n_loopstart			10						//	n_loopstart	EQU	10 ; L
+#define n_replen			14						//	n_replen	EQU	14 ; W
+#define n_period			16						//	n_period	EQU	16 ; W
+#define n_finetune			18						//	n_finetune	EQU	18 ; B
+#define n_volume			19						//	n_volume	EQU	19 ; B
+#define n_dmabit			20						//	n_dmabit	EQU	20 ; W
+#define n_toneportdirec		22						//	n_toneportdirec	EQU	22 ; B
+#define n_toneportspeed		23						//	n_toneportspeed	EQU	23 ; B
+#define n_wantedperiod		24						//	n_wantedperiod	EQU	24 ; W
+#define n_vibratocmd		26						//	n_vibratocmd	EQU	26 ; B
+#define n_vibratopos		27						//	n_vibratopos	EQU	27 ; B
+#define n_tremolocmd		28						//	n_tremolocmd	EQU	28 ; B
+#define n_tremolopos		29						//	n_tremolopos	EQU	29 ; B
+#define n_wavecontrol		30						//	n_wavecontrol	EQU	30 ; B
+#define n_glissfunk			31						//	n_glissfunk	EQU	31 ; B
+#define n_sampleoffset		32						//	n_sampleoffset	EQU	32 ; B
+#define n_pattpos			33						//	n_pattpos	EQU	33 ; B
+#define n_loopcount			34						//	n_loopcount	EQU	34 ; B
+#define n_funkoffset		35						//	n_funkoffset	EQU	35 ; B
+#define n_wavestart			36						//	n_wavestart	EQU	36 ; L
+#define n_reallength		40						//	n_reallength	EQU	40 ; W
 													//	
 													//	mt_init	move.l	mt_data,A0
 													//		MOVE.L	A0,mt_SongDataPtr
@@ -1334,7 +1397,8 @@ void mt_ClearTonePorta() {							//	mt_ClearTonePorta
 													//		LSL.W	#1,D0
 													//		ADD.L	D0,n_start(A6)
 													//		RTS
-													//	mt_sofskip
+void mt_sofskip()									//	mt_sofskip
+{
 													//		MOVE.W	#$0001,n_length(A6)
 }													//		RTS
 													//	
@@ -1460,35 +1524,40 @@ void mt_ClearTonePorta() {							//	mt_ClearTonePorta
 													//		BEQ	mt_FunkIt
 													//		RTS
 													//	
-													//	mt_FilterOnOff
+void mt_FilterOnOff()								//	mt_FilterOnOff
+{
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#1,D0
 													//		ASL.B	#1,D0
 													//		AND.B	#$FD,$BFE001
 													//		OR.B	D0,$BFE001
-													//		RTS	
+}													//		RTS	
 													//	
-													//	mt_SetGlissControl
+void mt_SetGlissControl()							//	mt_SetGlissControl
+{
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#$0F,D0
 													//		AND.B	#$F0,n_glissfunk(A6)
 													//		OR.B	D0,n_glissfunk(A6)
-													//		RTS
+}													//		RTS
 													//	
-													//	mt_SetVibratoControl
+void mt_SetVibratoControl()							//	mt_SetVibratoControl
+{
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#$0F,D0
 													//		AND.B	#$F0,n_wavecontrol(A6)
 													//		OR.B	D0,n_wavecontrol(A6)
 }													//		RTS
 													//	
-													//	mt_SetFineTune
+void mt_SetFineTune()								//	mt_SetFineTune
+{
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#$0F,D0
 													//		MOVE.B	D0,n_finetune(A6)
 }													//		RTS
 													//	
-													//	mt_JumpLoop
+void mt_JumpLoop()									//	mt_JumpLoop
+{
 													//		TST.B	mt_counter
 													//		BNE	mt_Return2
 													//		MOVE.B	n_cmdlo(A6),D0
@@ -1502,17 +1571,21 @@ void mt_ClearTonePorta() {							//	mt_ClearTonePorta
 													//		ST	mt_PBreakFlag
 }													//		RTS
 
-													//	mt_jumpcnt
-													//		MOVE.B	D0,n_loopcount(A6)
-													//		BRA.S	mt_jmploop
-													//	
-													//	mt_SetLoop
+void mt_jumpcnt()									//	mt_jumpcnt
+{
+	st_l(a6+n_loopcount,d0);						//		MOVE.B	D0,n_loopcount(A6)
+	mt_jmploop();									//		BRA.S	mt_jmploop
+}													//
+
+void mt_SetLoop()									//	mt_SetLoop
+{
 													//		MOVE.W	mt_PatternPos(PC),D0
 													//		LSR.W	#4,D0
 													//		MOVE.B	D0,n_pattpos(A6)
 }													//		RTS
 													//	
-													//	mt_SetTremoloControl
+void mt_SetTremoloControl()							//	mt_SetTremoloControl
+{
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#$0F,D0
 													//		LSL.B	#4,D0
@@ -1520,7 +1593,8 @@ void mt_ClearTonePorta() {							//	mt_ClearTonePorta
 													//		OR.B	D0,n_wavecontrol(A6)
 }													//		RTS
 													//	
-													//	mt_RetrigNote
+void mt_RetrigNote()								//	mt_RetrigNote
+{
 													//		MOVE.L	D1,-(SP)
 													//		MOVEQ	#0,D0
 													//		MOVE.B	n_cmdlo(A6),D0
@@ -1566,15 +1640,18 @@ void mt_ClearTonePorta() {							//	mt_ClearTonePorta
 													//		AND.B	#$F,D0
 													//		BRA	mt_VolSlideUp
 													//	
-													//	mt_VolumeFineDown
+void mt_VolumeFineDown()							//	mt_VolumeFineDown
+{
 													//		TST.B	mt_counter
 													//		BNE	mt_Return2
 													//		MOVEQ	#0,D0
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#$0F,D0
-													//		BRA	mt_VolSlideDown2
+	mt_VolSlideDown2();								//		BRA	mt_VolSlideDown2
+}
 													//	
-													//	mt_NoteCut
+void mt_NoteCut()									//	mt_NoteCut
+{
 													//		MOVEQ	#0,D0
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#$0F,D0
@@ -1584,27 +1661,40 @@ void mt_ClearTonePorta() {							//	mt_ClearTonePorta
 													//		MOVE.W	#0,8(A5)
 }													//		RTS
 													//	
-													//	mt_NoteDelay
-													//		MOVEQ	#0,D0
-													//		MOVE.B	n_cmdlo(A6),D0
-													//		AND.B	#$0F,D0
+void mt_NoteDelay()									//	mt_NoteDelay
+{
+	d0 = 0;											//		MOVEQ	#0,D0
+	d0 = ld_b(a6+n_cmdlo);							//		MOVE.B	n_cmdlo(A6),D0
+	d0 &= 0x0F;										//		AND.B	#$0F,D0
 													//		CMP.B	mt_Counter,D0
 													//		BNE	mt_Return2
 													//		MOVE.W	(A6),D0
 													//		BEQ	mt_Return2
 													//		MOVE.L	D1,-(SP)
-													//		BRA	mt_DoRetrig
+	mt_DoRetrig();									//		BRA	mt_DoRetrig
+}
 													//	
-													//	mt_PatternDelay
-													//		TST.B	mt_counter
-													//		BNE	mt_Return2
-													//		MOVEQ	#0,D0
-													//		MOVE.B	n_cmdlo(A6),D0
-													//		AND.B	#$0F,D0
-													//		TST.B	mt_PattDelTime2
-													//		BNE	mt_Return2
-													//		ADDQ.B	#1,D0
-													//		MOVE.B	D0,mt_PattDelTime
+void mt_PatternDelay()								//	mt_PatternDelay
+{
+	if (mt_counter != 0)							//		TST.B	mt_counter
+	{
+		mt_Return2();								//		BNE	mt_Return2
+		return;
+	}
+
+	d0 = 0;											//		MOVEQ	#0,D0
+	d0 = ld_b(a6+n_cmdlo);							//		MOVE.B	n_cmdlo(A6),D0
+	D0.b0 &= 0x0F;									//		AND.B	#$0F,D0
+
+	if (mt_PattDelTime2 != 0) 						//		TST.B	mt_PattDelTime2
+	{
+		mt_Return2();								//		BNE	mt_Return2
+		return;
+	}
+
+
+	d0 += 1;										//		ADDQ.B	#1,D0
+	mt_PattDelTime = d0;							//		MOVE.B	D0,mt_PattDelTime
 }													//		RTS
 													//	
 													//	mt_FunkIt
