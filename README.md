@@ -1,5 +1,5 @@
 # Amiga
-Amiga Demos in 68000 ASM
+Amiga Demos in 68000 ASM from Arnaud Guyon
 
 ## Cheap Disk
 
