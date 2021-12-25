@@ -2,6 +2,14 @@
 													//	;	mais sur 500, le 5e bitplan ne s'affiche pas correctement ???
 													//	;	Raison inconnue ???
 													//	;	Assemble avec ASM-One V1.20 By T.F.A.
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <proto/exec.h>
+#include <proto/dos.h>
+
 													//	
 													//	
 void code()											//		section fast,code
@@ -377,131 +385,157 @@ void FonduQuitte()									//	FonduQuitte:
 	a0 = Copper;									//		lea	Copper,a0
 													//	
 	d0 = ld_l(a0); a0+=4;							//	Fondu:	move.l	(a0)+,d0
-													//		cmp.l	#-2,d0
-													//		beq	FinPass
+	if ( (signed) d0 != -2)									//		cmp.l	#-2,d0
+	{												//		beq	FinPass
 													//	
-													//		swap	d0
-													//		cmp	#$0180,d0
-													//		blo	PasCoul
-													//		cmp	#$01BE,d0
-													//		bhi	PasCoul
+		swap_d(0);									//		swap	d0
+		if (D0.lw >= 0x180)							//		cmp	#$0180,d0
+		{											//		blo	PasCoul
+			if (D0.hw <= 0x01BE)					//		cmp	#$01BE,d0
+			{										//		bhi	PasCoul
 													//	
-													//		swap	d0
+				swap_d(0);							//		swap	d0
 													//		move	d0,d1
 													//		and	#$00F,d1
-													//		beq	PasBleu
-													//		sub	#$001,d0
-													//	PasBleu:move	d0,d1
+				if (D0.lw & 0x00F)					//		beq	PasBleu
+				{
+					D0.lw--;						//		sub	#$001,d0
+				}									//	PasBleu:
+													//		move	d0,d1
 													//		and	#$0F0,d1
-													//		beq	PasVert
-													//		sub	#$010,d0
-													//	PasVert:move	d0,d1
+				if (D0.lw & 0x0F0)					//		beq	PasVert
+				{
+					D0.lw-=0x10;					//		sub	#$010,d0
+				}									//	PasVert:
+													//		move	d0,d1
 													//		and	#$F00,d1
-													//		beq	PasRouge
-													//		sub	#$100,d0
-													//	PasRouge:
-													//		move	d0,-2(a0)	; Sauve coul
-													//	PasCoul:
-													//		bra	Fondu
-													//	FinPass:rts
+				if (D0.lw & 0xF00)					//		beq	PasRouge
+				{
+					D0.lw-=0x100;					//		sub	#$100,d0
+				}									//	PasRouge:
+				st_w(a0-2,d0);						//		move	d0,-2(a0)	; Sauve coul
+			}										//	PasCoul:
+		}
+		Fontu();
+	}												//		bra	Fondu
+}													//	FinPass:rts
 													//	
 													//	
-													//	GereScroll:
-													//		sub	#1,Compteur
-													//		bpl.b	NoNewLetter
+void GereScroll()									//	GereScroll:
+{
+	Compteur -= 1;									//		sub	#1,Compteur
+	if (Compteur<=0)								//		bpl.b	NoNewLetter
+	{												//	
+		a0 = PTtexte;								//		move.l	PTtexte,a0
+		d0 = ls_b(a0); a0++;						//		move.b	(a0)+,d0
+		if (d0 == 0)								//		bne.b	PasFinDuTexte
+		{
+			a0 = Texte;								//		lea	Texte,a0
+			d0 = ld_b(a0); a0++;					//		move.b	(a0)+,d0
+
+		}											//	PasFinDuTexte:
+		a0 = PTtexte;								//		move.l	a0,PTtexte
 													//	
-													//		move.l	PTtexte,a0
-													//		move.b	(a0)+,d0
-													//		bne.b	PasFinDuTexte
-													//		lea	Texte,a0
-													//		move.b	(a0)+,d0
-													//	PasFinDuTexte:
-													//		move.l	a0,PTtexte
+		CopyFont();									//		bsr.b	CopyFont
+		Compteur = 7;								//		move	#7,Compteur
+	}												//	NoNewLetter:
 													//	
-													//		bsr.b	CopyFont
-													//		move	#7,Compteur
-													//	NoNewLetter:
-													//	
-													//		lea	Scr1-(15*42*5)+2+14,a0
-													//		lea	Scr1-(15*42*5)+0+14,a1
-													//		lea	$dff000,a5
+	a0 = Scr1-(15*42*5)+2+14;						//		lea	Scr1-(15*42*5)+2+14,a0
+	a1 = Scr1-(15*42*5)+0+14;						//		lea	Scr1-(15*42*5)+0+14,a1
+	a5 = custom;									//		lea	$dff000,a5
+/*
 													//	WaitBlit:
-													//		btst	#14,2(a5)
+	// we don't need to this in sw.	 ==>			//		btst	#14,2(a5)
 													//		bne.b	WaitBlit
-													//		move.l	a0,$50(a5)
-													//		move.l	a1,$54(a5)
-													//		move.l	#$000E000E,$64(a5)
-													//		move.l	#$f9f00000,$40(a5)
-													//		move.l	#-1,$44(a5)
-													//		move	#[12*5*64]+[224/16],$58(a5)	; Gozy
-													//		rts
+*/
+	a0 = ld_l(a5+0x50);								//		move.l	a0,$50(a5)
+	a1 = ld_l(a5+0x54);								//		move.l	a1,$54(a5)
+	st_l(0x64+a5,0x000E000E);						//		move.l	#$000E000E,$64(a5)
+	st_l(0x40+a5,0xF9F00000);						//		move.l	#$f9f00000,$40(a5)
+	st_l(0x44+a5,-1);								//		move.l	#-1,$44(a5)
+	st_l(0x58+a5,(12*5*64)+(224/16));				//		move	#[12*5*64]+[224/16],$58(a5)	; Gozy
+	_doBitter();
+}													//		rts
 													//	
-													//	CopyFont:	; d0="caractere"
-													//		cmp.b	#' ',d0
-													//		beq.b	Espace
-													//		cmp.b	#'A',d0
-													//		blo.b	PasLettre
-													//		cmp.b	#'Z',d0
+void CopyFont()										//	CopyFont:	; d0="caractere"
+{
+	if (d0!=' ')									//		cmp.b	#' ',d0
+	{												//		beq.b	Espace
+		if ((d0>='A')&&(d0<='Z'))					//		cmp.b	#'A',d0
+		{											//		blo.b	PasLettre
+			 										//		cmp.b	#'Z',d0
 													//		bhi.b	PasLettre
 													//	
-													//		sub.b	#'A',d0
-													//		and.l	#$FF,d0
-													//		bra.w	Fontu
-													//	PasLettre:
-													//		cmp.b	#'0',d0
-													//		blo.b	Espace
+			d0=-'A';								//		sub.b	#'A',d0
+			d0&=0xFF;								//		and.l	#$FF,d0
+			Fontu();								//		bra.w	Fontu
+			return;
+		}											//	PasLettre:
+
+		if ((d0>='0')&&(d0<='9'))					//		cmp.b	#'0',d0
+		{											//		blo.b	Espace
 													//		cmp.b	#'9',d0
 													//		bhi.b	Espace
-													//		sub.b	#'0',d0		; Chiffre 0-9
+			d0-='0'									//		sub.b	#'0',d0		; Chiffre 0-9
 													//		and.l	#$F,d0
-													//		add.l	#26,d0
-													//		bra.w	Fontu
-													//	
-													//	Espace:	cmp.b	#'.',d0
-													//		bne	PasPoint
-													//		move.l	#36,d0
-													//		bra.w	Fontu
+			d0+=26;									//		add.l	#26,d0
+			Fontu();								//		bra.w	Fontu
+			return;
+		}
+
+		swicth (d0)									//	
+		{
+			case '.':								//	Espace:	cmp.b	#'.',d0
+				d0 = 36;							//		bne	PasPoint
+				Fontu();							//		move.l	#36,d0
+				return;								//		bra.w	Fontu
 													//	PasPoint:
-													//		cmp.b	#',',d0
-													//		bne	PasVirg
-													//		move.l	#37,d0
-													//		bra.b	Fontu
+			case ',':								//		cmp.b	#',',d0
+				d0 = 37;							//		bne	PasVirg
+				Fontu();							//		move.l	#37,d0
+				return;								//		bra.b	Fontu
 													//	PasVirg:
-													//		cmp.b	#"'",d0
-													//		bne	PasApos
-													//		move.l	#38,d0
-													//		bra.b	Fontu
+			case '\'':								//		cmp.b	#"'",d0
+				d0 = 38;							//		bne	PasApos
+				Fontu();							//		move.l	#38,d0
+				return;								//		bra.b	Fontu
 													//	PasApos:
-													//		cmp.b	#"!",d0
-													//		bne	PasExc
-													//		move.l	#39,d0
-													//		bra.b	Fontu
-													//	PasExc:	cmp.b	#":",d0
-													//		bne	Pas2Pts
-													//		move.l	#40,d0
-													//		bra.b	Fontu
-													//	Pas2Pts:cmp.b	#"-",d0
-													//		bne	PasTiret
-													//		move.l	#41,d0
-													//		bra.b	Fontu
+			case '!':								//		cmp.b	#"!",d0
+				d0 = 39;							//		bne	PasExc
+				Fontu();							//		move.l	#39,d0
+				return;								//		bra.b	Fontu
+													//	PasExc:	
+			case ':':								//		cmp.b	#":",d0
+				d0 = 40;							//		bne	Pas2Pts
+				Fontu();							//		move.l	#40,d0
+				return;								//		bra.b	Fontu
+													//	Pas2Pts:
+			case '-':								//		cmp.b	#"-",d0
+				d0 = 41;							//		bne	PasTiret
+				Fontu();							//		move.l	#41,d0
+				return;								//		bra.b	Fontu
 													//	PasTiret:
-													//		cmp.b	#"?",d0
-													//		bne	PasInter
-													//		move.l	#42,d0
-													//		bra.b	Fontu
+			case '?':								//		cmp.b	#"?",d0
+				d0 = 42;							//		bne	PasInter
+				Fontu();							//		move.l	#42,d0
+				return;								//		bra.b	Fontu
 													//	PasInter:
-													//		cmp.b	#">",d0
-													//		bne	Esp
-													//		move.l	#43,d0
-													//		bra.b	Fontu
-													//	
-													//	Esp:	lea	Scr1-(15*42*5)+40,a0
-													//		moveq	#0,d0
-													//		move	#[12*5]-1,d1
-													//	CopEsp:	move.b	d0,(a0)
-													//		lea	42(a0),a0
-													//		dbf	d1,CopEsp
-													//		rts
+			case '>':								//		cmp.b	#">",d0
+				d0 = 43;							//		bne	Esp
+				Fontu();							//		move.l	#43,d0
+				return;								//		bra.b	Fontu
+		}											//	
+	}
+
+	a0 = Scr1-(15*42*5)+40;							//	Esp:	lea	Scr1-(15*42*5)+40,a0
+	d0 = 0;											//		moveq	#0,d0
+	d1 = (12*5);									//		move	#[12*5]-1,d1
+	for(;d1;d1--)									//	CopEsp:
+	{
+		st_b(a0,d0);								//		move.b	d0,(a0)
+		a0 += 42;									//		lea	42(a0),a0
+	}												//		dbf	d1,CopEsp
+}													//		rts
 													//	
 void Fontu()										//	Fontu:
 {
@@ -589,23 +623,26 @@ void GereEqual()
 	}												//		dbf	d0,CopyEqu
 }													//		rts
 													//	;====================================================================
-													//	irq3:	movem.l	d0-d7/a0-a6,-(a7)
+void irq3()											//	irq3:
+{
+	movem_push(RD0,RA6);							//		movem.l	d0-d7/a0-a6,-(a7)
 													//		move	$dff01e,d0
-													//		and	$dff01c,d0
-													//		btst	#5,d0
+	// DFF01C == INTENAR							//		and	$dff01c,d0
+	// test COOPER, DISK bits ==>					//		btst	#5,d0
 													//		beq.w	NoPlay
 													//	
-													//		addq.l	#1,Wait
-													//		bsr	mots_control
+	Wait += 1;										//		addq.l	#1,Wait
+	mots_control();									//		bsr	mots_control
 													//	
-													//		tst	Permit
-													//		bne	NoPlay
+	if (!Permit)									//		tst	Permit
+	{												//		bne	NoPlay
 													//	
-													//		bsr	mt_music
+		mt_music();									//		bsr	mt_music
+	}
 													//	
-													//	NoPlay:	movem.l	(a7)+,d0-d7/a0-a6
+	movem_pull(RD0,RA6);							//	NoPlay:	movem.l	(a7)+,d0-d7/a0-a6
 													//	saveirq3:
-													//		jmp	$0
+}													//		jmp	$0
 													//	;====================================================================
 													//	mots_control:
 													//		lea	Pointeur,a3
@@ -1191,7 +1228,8 @@ void mt_ClearTonePorta() {							//	mt_ClearTonePorta
 													//		CLR.W	n_wantedperiod(A6)
 }													//		RTS
 													//	
-													//	mt_TonePortamento
+void mt_TonePortamento()							//	mt_TonePortamento
+{
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		BEQ.S	mt_TonePortNoChange
 													//		MOVE.B	D0,n_toneportspeed(A6)
@@ -1244,7 +1282,8 @@ void mt_ClearTonePorta() {							//	mt_ClearTonePorta
 													//		MOVE.W	D2,6(A5) ; Set period
 }													//		RTS
 													//	
-													//	mt_Vibrato
+void mt_Vibrato()									//	mt_Vibrato
+{
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		BEQ.S	mt_Vibrato2
 													//		MOVE.B	n_vibratocmd(A6),D2
@@ -1303,17 +1342,22 @@ void mt_ClearTonePorta() {							//	mt_ClearTonePorta
 													//		LSR.W	#2,D0
 													//		AND.W	#$003C,D0
 													//		ADD.B	D0,n_vibratopos(A6)
-													//		RTS
+}													//		RTS
 													//	
-													//	mt_TonePlusVolSlide
-													//		BSR	mt_TonePortNoChange
-													//		BRA	mt_VolumeSlide
+void mt_TonePlusVolSlide()							//	mt_TonePlusVolSlide
+{
+	mt_TonePortNoChange();							//		BSR	mt_TonePortNoChange
+	mt_VolumeSlide();								//		BRA	mt_VolumeSlide
+}
 													//	
-													//	mt_VibratoPlusVolSlide
-													//		BSR.S	mt_Vibrato2
-													//		BRA	mt_VolumeSlide
-													//	
-													//	mt_Tremolo
+void mt_VibratoPlusVolSlide()						//	mt_VibratoPlusVolSlide
+{
+	mt_Vibrato2();									//		BSR.S	mt_Vibrato2
+	mt_VolumeSlide();								//		BRA	mt_VolumeSlide
+}													//	
+
+void mt_Tremolo()									//	mt_Tremolo
+{
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		BEQ.S	mt_Tremolo2
 													//		MOVE.B	n_tremolocmd(A6),D2
@@ -1383,26 +1427,31 @@ void mt_ClearTonePorta() {							//	mt_ClearTonePorta
 													//		ADD.B	D0,n_tremolopos(A6)
 }													//		RTS
 													//	
-													//	mt_SampleOffset
-													//		MOVEQ	#0,D0
-													//		MOVE.B	n_cmdlo(A6),D0
-													//		BEQ.S	mt_sononew
-													//		MOVE.B	D0,n_sampleoffset(A6)
-													//	mt_sononew
-													//		MOVE.B	n_sampleoffset(A6),D0
-													//		LSL.W	#7,D0
-													//		CMP.W	n_length(A6),D0
-													//		BGE.S	mt_sofskip
-													//		SUB.W	D0,n_length(A6)
-													//		LSL.W	#1,D0
-													//		ADD.L	D0,n_start(A6)
-													//		RTS
+void mt_SampleOffset()								//	mt_SampleOffset
+{
+	d0 =0;											//		MOVEQ	#0,D0
+	d0.b0 = ld_b(a6+n_cmdlo);						//		MOVE.B	n_cmdlo(A6),D0
+	if (D0.b0 != 0)									//		BEQ.S	mt_sononew
+	{
+		ld_b(a6+n_sampleoffset,D0.b0);				//		MOVE.B	D0,n_sampleoffset(A6)
+	}												//	mt_sononew
+	d0 = ld_b(a6+b_n_sampleoffset);					//		MOVE.B	n_sampleoffset(A6),D0
+	D0.lw <<= 7;									//		LSL.W	#7,D0
+	if (D0<=st_ld(a6+n_length))						//		CMP.W	n_length(A6),D0
+	{												//		BGE.S	mt_sofskip
+		st_lw(a6+n_length,d0);							//		SUB.W	D0,n_length(A6)
+		D0.lw <<= 1;									//		LSL.W	#1,D0
+		st_l(a6+n_start,ld_l(a6+n_start)+D0);			//		ADD.L	D0,n_start(A6)
+	}
+}													//		RTS
+
 void mt_sofskip()									//	mt_sofskip
 {
 													//		MOVE.W	#$0001,n_length(A6)
 }													//		RTS
 													//	
-													//	mt_VolumeSlide
+void mt_VolumeSlide()								//	mt_VolumeSlide
+{
 													//		MOVEQ	#0,D0
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		LSR.B	#4,D0
@@ -1418,7 +1467,8 @@ void mt_sofskip()									//	mt_sofskip
 													//		MOVE.W	D0,8(A5)
 }													//		RTS
 													//	
-													//	mt_VolSlideDown
+void mt_VolSlideDown()								//	mt_VolSlideDown
+{
 													//		MOVEQ	#0,D0
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#$0F,D0
@@ -1431,7 +1481,8 @@ void mt_sofskip()									//	mt_sofskip
 													//		MOVE.W	D0,8(A5)
 }													//		RTS
 													//	
-													//	mt_PositionJump
+void mt_PositionJump()								//	mt_PositionJump
+{
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		SUBQ.B	#1,D0
 													//		MOVE.B	D0,mt_SongPos
@@ -1439,8 +1490,9 @@ void mt_sofskip()									//	mt_sofskip
 													//		ST 	mt_PosJumpFlag
 }													//		RTS
 													//	
-													//	mt_VolumeChange
-													//		MOVEQ	#0,D0
+void mt_VolumeChange()								//	mt_VolumeChange
+{
+	d0 = 0;											//		MOVEQ	#0,D0
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		CMP.B	#$40,D0
 													//		BLS.S	mt_VolumeOk
@@ -1450,7 +1502,8 @@ void mt_sofskip()									//	mt_sofskip
 													//		MOVE.W	D0,8(A5)
 }													//		RTS
 													//	
-													//	mt_PatternBreak
+void mt_PatternBreak()								//	mt_PatternBreak
+{
 													//		MOVEQ	#0,D0
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		MOVE.L	D0,D2
@@ -1464,7 +1517,8 @@ void mt_sofskip()									//	mt_sofskip
 													//		ST	mt_PosJumpFlag
 }													//		RTS
 													//	
-													//	mt_SetSpeed
+void mt_SetSpeed()									//	mt_SetSpeed
+{
 													//		MOVE.B	3(A6),D0
 													//		BEQ	mt_Return2
 													//		CLR.B	mt_counter
@@ -1697,7 +1751,8 @@ void mt_PatternDelay()								//	mt_PatternDelay
 	mt_PattDelTime = d0;							//		MOVE.B	D0,mt_PattDelTime
 }													//		RTS
 													//	
-													//	mt_FunkIt
+void mt_FunkIt()									//	mt_FunkIt
+{
 													//		TST.B	mt_counter
 													//		BNE	mt_Return2
 													//		MOVE.B	n_cmdlo(A6),D0
@@ -1959,8 +2014,8 @@ const char *TexteInfo[]=
 		"SO IT'S FORBIDDEN DE LA VENDRE !   "
 		"           ";
 
-
-
+void init_copper()
+{
 COPPER2 = ptr;
 
 	setCop(	0x008e,0x6981 );
@@ -2113,8 +2168,8 @@ Coul = ptr;
 	setCop(	0x1be,0x0200 );
 
 
-; Origine EEF
-; 55D,358,55d
+//; Origine EEF
+//; 55D,358,55d
 
 coul0:	dc.w	0x500f,0xfffe,0x184,0xeef
 
