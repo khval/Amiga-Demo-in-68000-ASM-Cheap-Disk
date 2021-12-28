@@ -27,12 +27,17 @@ This is a music disk made for Analog. Works fine on A1200 and is supposed to wor
 - Copy project Amose-Demo-in-68000-ASM-Cheap-Disk into test folder.
 - Add tests/Amiga-Demos-in-68000-ASM-Cheap-Disk/CheapDisk/MusDisk2.c to makefile.
 
-type this in AmigaShell
+Type this in AmigaShell
 
     make clean
     make all
     
-To run it type:
+Before you run it, install the dependencies
+
+    download ptreplay.library from os4depot.net and install it.
+    download ptplay.library from os4depot.net and install it.
+    
+To run it type:    
     
     cd tests/Amiga-Demos-in-68000-ASM-Cheap-Disk/CheapDisk/
     MusDisk2.elf
