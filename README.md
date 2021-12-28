@@ -9,7 +9,7 @@ Amiga Demos in 68000 ASM from Arnaud Guyon
 
 This is a music disk made for Analog. Works fine on A1200 and is supposed to work also on A500 but there is a bitplan issue on A500.
 
-### Launch
+### To compile MusDisk2.s (680x0 version)
 
 - In folder "CheapDisk" launch Asmone
 - Choose memory allocation (for example Chip 1000K). It requires a lot as there are several musics.
@@ -19,7 +19,7 @@ This is a music disk made for Analog. Works fine on A1200 and is supposed to wor
 - Left mouse to change the musics
 - ESC to quit
 
-### To compile MusDisk2.c
+### To compile MusDisk2.c (PPC version)
 
 - You need to have AmigaOS4 SDK installed.
 - Download libBlitter.library from os4Depot.net
