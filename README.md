@@ -19,4 +19,16 @@ This is a music disk made for Analog. Works fine on A1200 and is supposed to wor
 - Left mouse to change the musics
 - ESC to quit
 
+### To compile MusDisk2.c
+
+- You need to have AmigaOS4 SDK installed.
+- Download libBlitter.library from os4Depot.net
+- Download libCopper.library project from github
+- Copy project Amose-Demo-in-68000-ASM-Cheap-Disk into test folder.
+- Add tests/Amiga-Demos-in-68000-ASM-Cheap-Disk/CheapDisk/MusDisk2.c to makefile.
+
+type this in AmigaShell
+
+make clean
+make make all
 
