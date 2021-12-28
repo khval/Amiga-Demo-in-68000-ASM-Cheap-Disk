@@ -29,6 +29,6 @@ This is a music disk made for Analog. Works fine on A1200 and is supposed to wor
 
 type this in AmigaShell
 
-make clean
-make make all
+    make clean
+    make make all
 
