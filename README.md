@@ -30,5 +30,10 @@ This is a music disk made for Analog. Works fine on A1200 and is supposed to wor
 type this in AmigaShell
 
     make clean
-    make make all
-
+    make all
+    
+To run it type:
+    
+    cd tests/Amiga-Demos-in-68000-ASM-Cheap-Disk/CheapDisk/
+    MusDisk2.elf
+    
