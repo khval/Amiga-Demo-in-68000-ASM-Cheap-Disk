@@ -43,6 +43,15 @@ char *copper = NULL;
 char *copper2 = NULL;
 char *Com = NULL;
 char *r38d0 = NULL;
+char *Sprt = NULL;
+
+char *Scr1 = NULL;
+char *Scr1E = NULL;
+
+char *Font = NULL;
+char *FontE = NULL;
+
+uint16 Compteur = 8;
 
 char *coul1,*coul2,*coul3,*coul4,*coul5,*coul6,*coul7,*coul8,*coul9,*coul10;
 char *mm1,*mm2,*mm3,*mm4,*mm5,*mm6,*mm7,*mm8,*mm9;
@@ -55,6 +64,7 @@ void *mt_data=NULL;
 extern char *Texte;
 extern char *Texteinfo;
 extern uint16 Ritchy_Volumes[];
+extern uint16 TableEqu[];
 
 char *PTtexte = NULL;
 
@@ -88,6 +98,14 @@ void PasSong();
 void Play();
 void Pause();
 void Filter();
+void FonduQuitte();
+void GereScroll();
+void CopyFont();
+void Fontu();
+void PauseCafe2();
+void EffCoul();
+void RestoreFond();
+void GereEqual();
 
 uint32 WAIT = 0;
 uint16 _permit = 0;
@@ -99,7 +117,7 @@ uint8 Auto =	0;
 
 char *Nounou,*NounouE;
 char *Pic,*PicE;
-
+char *Buffer,*BufferE;
 													//	
 													//	
 void code()											//		section fast,code
@@ -394,7 +412,7 @@ void PasSouris()
 
 void fin()
 {
-	a0 = Ritchy_Volumes;							//	fin:	lea	Ritchy_Volumes(pc),a0
+	a0 = (uint32) Ritchy_Volumes;							//	fin:	lea	Ritchy_Volumes(pc),a0
 													//		move	(a0)+,d0		; Volumes 4 voies
 													//		move	(a0)+,d1
 													//		move	(a0)+,d2
@@ -436,30 +454,30 @@ void fin()
 													//		subq	#1,d3
 													//	
 													//	
-		movem_push(RD0,RD5);						//	Vol3:	movem.l	d0-d5/a0,-(sp)
+		movem_push(RD0,RD5);							//	Vol3:	movem.l	d0-d5/a0,-(sp)
 		movem_push(RA0,RA0);	
 	
-		FonduQuitte();								//		bsr	FonduQuitte
+		FonduQuitte();									//		bsr	FonduQuitte
 
-		movem_pull(RA0,RA0);						//		movem.l	(sp)+,d0-d5/a0
+		movem_pull(RA0,RA0);							//		movem.l	(sp)+,d0-d5/a0
 		movem_pull(RD0,RA6);
 													//	
-		d5 = !d5;									//	NONO1:	not	d5
+		d5 = !d5;										//	NONO1:	not	d5
 													//	
-		d4 = d0;									//		move	d0,d4
+		d4 = d0;										//		move	d0,d4
 		d4 += d1;									//		add	d1,d4
 		d4 += d2;									//		add	d2,d4
 		d4 += d3;									//		add	d3,d4
 
-	} while (d4>0);									//		bne	Decrease	; Jusqu'a tous a 0 !!!
+	} while (d4>0);										//		bne	Decrease	; Jusqu'a tous a 0 !!!
 													//	
 													//		move.l	saveirq3+2,$6c.w
-	MT_end();										//		bsr	MT_end
+	MT_end();											//		bsr	MT_end
 													//	
-	a6 = ld_l(0x00000004);							//		move.l	4.w,a6
+	a6 = ld_l(0x00000004);								//		move.l	4.w,a6
 													//		jsr	-138(a6)
 													//	
-	a5 = custom;									//		lea	$dff000,a5
+	a5 = (uint32) custom;								//		lea	$dff000,a5
 													//	
 													//	;	move	#$7fff,d0
 													//	;	move	d0,$9a(a5)
@@ -469,51 +487,51 @@ void fin()
 													//	;	move	(a0),$96(a5)
 													//	
 	//	open library code..	==>						//		move.l	4.w,a6
-	//	(hmmm.. no close library???)				//		lea	GfxName(pc),a1
+	//	(hmmm.. no close library???)						//		lea	GfxName(pc),a1
 													//		jsr	-408(a6)
 													//		move.l	d0,a0
 													//		move.l	d0,GfxBase
-	// I think restore display... ==>				//		move.l	38(a0),$80(a5)
+	// I think restore display... ==>							//		move.l	38(a0),$80(a5)
 													//		clr	$88(a5)
 													//	
-	movem_pull(RD0,RA6);							//		movem.l	(a7)+,d0-d7/a0-a6	
+	movem_pull(RD0,RA6);								//		movem.l	(a7)+,d0-d7/a0-a6	
 	d0 = 0;											//		moveq	#0,d0
 }													//		rts
 													//	
-void FonduQuitte()									//	FonduQuitte:
+void FonduQuitte()										//	FonduQuitte:
 {
-	a0 = Copper;									//		lea	Copper,a0
+	a0 = (uint32) copper;								//		lea	Copper,a0
 													//	
-	d0 = ld_l(a0); a0+=4;							//	Fondu:	move.l	(a0)+,d0
+	d0 = ld_l(a0); a0+=4;								//	Fondu:	move.l	(a0)+,d0
 	if ( (signed) d0 != -2)									//		cmp.l	#-2,d0
 	{												//		beq	FinPass
 													//	
 		swap_d(0);									//		swap	d0
-		if (D0.lw >= 0x180)							//		cmp	#$0180,d0
+		if (D0.lw >= 0x180)								//		cmp	#$0180,d0
 		{											//		blo	PasCoul
-			if (D0.hw <= 0x01BE)					//		cmp	#$01BE,d0
+			if (D0.hw <= 0x01BE)						//		cmp	#$01BE,d0
 			{										//		bhi	PasCoul
 													//	
 				swap_d(0);							//		swap	d0
 													//		move	d0,d1
 													//		and	#$00F,d1
-				if (D0.lw & 0x00F)					//		beq	PasBleu
+				if (D0.lw & 0x00F)						//		beq	PasBleu
 				{
-					D0.lw--;						//		sub	#$001,d0
+					D0.lw--;							//		sub	#$001,d0
 				}									//	PasBleu:
 													//		move	d0,d1
 													//		and	#$0F0,d1
-				if (D0.lw & 0x0F0)					//		beq	PasVert
+				if (D0.lw & 0x0F0)						//		beq	PasVert
 				{
-					D0.lw-=0x10;					//		sub	#$010,d0
+					D0.lw-=0x10;						//		sub	#$010,d0
 				}									//	PasVert:
 													//		move	d0,d1
 													//		and	#$F00,d1
-				if (D0.lw & 0xF00)					//		beq	PasRouge
+				if (D0.lw & 0xF00)						//		beq	PasRouge
 				{
-					D0.lw-=0x100;					//		sub	#$100,d0
+					D0.lw-=0x100;						//		sub	#$100,d0
 				}									//	PasRouge:
-				st_w(a0-2,d0);						//		move	d0,-2(a0)	; Sauve coul
+				st_w(a0-2,d0);							//		move	d0,-2(a0)	; Sauve coul
 			}										//	PasCoul:
 		}
 		Fontu();
@@ -521,28 +539,28 @@ void FonduQuitte()									//	FonduQuitte:
 }													//	FinPass:rts
 													//	
 													//	
-void GereScroll()									//	GereScroll:
+void GereScroll()										//	GereScroll:
 {
 	Compteur -= 1;									//		sub	#1,Compteur
-	if (Compteur<=0)								//		bpl.b	NoNewLetter
+	if (Compteur<=0)									//		bpl.b	NoNewLetter
 	{												//	
-		a0 = PTtexte;								//		move.l	PTtexte,a0
-		d0 = ls_b(a0); a0++;						//		move.b	(a0)+,d0
-		if (d0 == 0)								//		bne.b	PasFinDuTexte
+		a0 = (uint32) PTtexte;							//		move.l	PTtexte,a0
+		d0 = ls_b(a0); a0++;							//		move.b	(a0)+,d0
+		if (d0 == 0)									//		bne.b	PasFinDuTexte
 		{
-			a0 = Texte;								//		lea	Texte,a0
-			d0 = ld_b(a0); a0++;					//		move.b	(a0)+,d0
+			a0 = (uint32) Texte;							//		lea	Texte,a0
+			d0 = ld_b(a0); a0++;						//		move.b	(a0)+,d0
 
 		}											//	PasFinDuTexte:
-		a0 = PTtexte;								//		move.l	a0,PTtexte
+		a0 = (uint32) PTtexte;							//		move.l	a0,PTtexte
 													//	
 		CopyFont();									//		bsr.b	CopyFont
-		Compteur = 7;								//		move	#7,Compteur
+		Compteur = 7;									//		move	#7,Compteur
 	}												//	NoNewLetter:
 													//	
-	a0 = Scr1-(15*42*5)+2+14;						//		lea	Scr1-(15*42*5)+2+14,a0
-	a1 = Scr1-(15*42*5)+0+14;						//		lea	Scr1-(15*42*5)+0+14,a1
-	a5 = custom;									//		lea	$dff000,a5
+	a0 = (uint32) Scr1-(15*42*5)+2+14;					//		lea	Scr1-(15*42*5)+2+14,a0
+	a1 = (uint32) Scr1-(15*42*5)+0+14;					//		lea	Scr1-(15*42*5)+0+14,a1
+	a5 = (uint32) custom;								//		lea	$dff000,a5
 /*
 													//	WaitBlit:
 	// we don't need to this in sw.	 ==>			//		btst	#14,2(a5)
@@ -576,14 +594,14 @@ void CopyFont()										//	CopyFont:	; d0="caractere"
 		{											//		blo.b	Espace
 													//		cmp.b	#'9',d0
 													//		bhi.b	Espace
-			d0-='0'									//		sub.b	#'0',d0		; Chiffre 0-9
+			d0-='0';									//		sub.b	#'0',d0		; Chiffre 0-9
 													//		and.l	#$F,d0
 			d0+=26;									//		add.l	#26,d0
 			Fontu();								//		bra.w	Fontu
 			return;
 		}
 
-		swicth (d0)									//	
+		switch (d0)									//	
 		{
 			case '.':								//	Espace:	cmp.b	#'.',d0
 				d0 = 36;							//		bne	PasPoint
@@ -627,7 +645,7 @@ void CopyFont()										//	CopyFont:	; d0="caractere"
 		}											//	
 	}
 
-	a0 = Scr1-(15*42*5)+40;							//	Esp:	lea	Scr1-(15*42*5)+40,a0
+	a0 = (uint32) Scr1-(15*42*5)+40;							//	Esp:	lea	Scr1-(15*42*5)+40,a0
 	d0 = 0;											//		moveq	#0,d0
 	d1 = (12*5);									//		move	#[12*5]-1,d1
 	for(;d1;d1--)									//	CopEsp:
@@ -637,28 +655,28 @@ void CopyFont()										//	CopyFont:	; d0="caractere"
 	}												//		dbf	d1,CopEsp
 }													//		rts
 													//	
-void Fontu()										//	Fontu:
+void Fontu()											//	Fontu:
 {
-	a0 = Font;										//		lea	Font,a0
-	a1 = Scr1-(15*42*5)+40;							//		lea	Scr1-(15*42*5)+40,a1
+	a0 = (uint32) Font;									//		lea	Font,a0
+	a1 = (uint32) Scr1-(15*42*5)+40;						//		lea	Scr1-(15*42*5)+40,a1
 	a1 += d0;										//		add.l	d0,a0		; a0 sur bonne fonte
-	d1 = (12*5);									//		move	#[12*5]-1,d1
-	for (;d1;d1--)									//	CopyF:
+	d1 = (12*5);										//		move	#[12*5]-1,d1
+	for (;d1;d1--)										//	CopyF:
 	{
-		st_b(a1,ld_b(a0));							//		move.b	(a0),(a1)
+		st_b(a1,ld_b(a0));								//		move.b	(a0),(a1)
 		a0 += 44;									//		lea	44(a0),a0
 		a1 += 42;									//		lea	42(a1),a1
 	}												//		dbf	d1,CopyF
 }													//		rts
 													//	
 													//	
-void EffCoul()										//	EffCoul:
+void EffCoul()											//	EffCoul:
 {
-	a0 = Tcoul;										//		lea	Tcoul,a0
-	for (d0=9;d0;d0--)								//		moveq	#9-1,d0
+	a0 = (uint32) Tcoul;									//		lea	Tcoul,a0
+	for (d0=9;d0;d0--)									//		moveq	#9-1,d0
 	{												//	DelCoul:
-		a1 = ld_l(a0); a0+=4;						//		move.l	(a0)+,a1
-		st_w(a1+6,0xFFD)							//		move	#$55d,6(a1)
+		a1 = ld_l(a0); a0+=4;							//		move.l	(a0)+,a1
+		st_w(a1+6,0xFFD);								//		move	#$55d,6(a1)
 	}												//		dbf	d0,DelCoul
 }													//		rts
 													//	
@@ -666,25 +684,25 @@ void EffCoul()										//	EffCoul:
 
 void SaveFond()										//	SaveFond:
 {
-	a0 = Scr1-(15*42*5)+14;							//		lea	Scr1-(15*42*5)+14,a0
-	a1 = Buffer;									//		lea	Buffer,a1
+	a0 = (uint32) Scr1-(15*42*5)+14;						//		lea	Scr1-(15*42*5)+14,a0
+	a1 = (uint32) Buffer;									//		lea	Buffer,a1
 	d0 = 12-1;										//		moveq	#12-1,d0
 	for (d0=12;d0;d0--)
 	{
-		st_w(a1,ld_w(a0)); a1+=2;					//	SF:	move	(a0),(a1)+
-		st_w(a1,ld_w(a0+42)); a1+=2;				//		move	42(a0),(a1)+
-		st_w(a1,ld_w(a0+42*2)); a1+=2;				//		move	42*2(a0),(a1)+
-		st_w(a1,ld_w(a0+42*3)); a1+=2;				//		move	42*3(a0),(a1)+
-		st_w(a1,ld_w(a0+72*4)); a1+=2;				//		move	42*4(a0),(a1)+
+		st_w(a1,ld_w(a0)); a1+=2;						//	SF:	move	(a0),(a1)+
+		st_w(a1,ld_w(a0+42)); a1+=2;						//		move	42(a0),(a1)+
+		st_w(a1,ld_w(a0+42*2)); a1+=2;					//		move	42*2(a0),(a1)+
+		st_w(a1,ld_w(a0+42*3)); a1+=2;					//		move	42*3(a0),(a1)+
+		st_w(a1,ld_w(a0+72*4)); a1+=2;					//		move	42*4(a0),(a1)+
 		a0 += 42*5;									//		lea	42*5(a0),a0
 	}												//		dbf	d0,SF
 }													//		rts
 
 													//	;====================================================================
-void RestoreFond()									//	RestoreFond:
+void RestoreFond()										//	RestoreFond:
 {
-	a0 = Buffer;									//		lea	Buffer,a0
-	a1 = Scr1-(15*42*5)+14;							//		lea	Scr1-(15*42*5)+14,a1
+	a0 = (uint32) Buffer;									//		lea	Buffer,a0
+	a1 = (uint32) Scr1-(15*42*5)+14;						//		lea	Scr1-(15*42*5)+14,a1
 													//		moveq	#12-1,d0
 	for(d0=12;d0;d0--)								
 	{												
@@ -2027,8 +2045,6 @@ uint16_t safemem[]={0,0};
 
 //copper list
 
-uint16_t Compteur =	8;
-
 
 // ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789    .  ,  '  !  :  -  ?  =>
 
@@ -2106,7 +2122,7 @@ char *Texteinfo =
 		"SO IT'S FORBIDDEN DE LA VENDRE !   "
 		"           ";
 
-void init_copper()
+void init_copper2()
 {
 copper2 = ptr;
 
@@ -2164,13 +2180,16 @@ Com = ptr;
 	setCop(	0xce0f,0xfffe);
 	setCop( 0x180,0x229 );
 	setCop( 0xFFFF,0xFFFE);
+}
 
-
-uint16_t TableEqu[] = {
+uint16 TableEqu[] = {
 		 0xF29,0x100	// Init,Dec
 		,0x2F9,0x010
 		,0xFF9,0x110
 		,0x2B0,0x00F };
+
+void init_copper()
+{
 
 copper = ptr;
 
@@ -2184,21 +2203,22 @@ r38d0 = ptr;
 
 Bpls = ptr;
 
-	setCop(	0x00e0,0x0000);
+	setCop( 0x00e0,0x0000);
 	setCop( 0x00e2,0x0000);
-	setCop(	0x00e4,0x0000);
+	setCop( 0x00e4,0x0000);
 	setCop( 0x00e6,0x0000);
-	setCop(	0x00e8,0x0000);
+	setCop( 0x00e8,0x0000);
 	setCop( 0x00ea,0x0000);
-	setCop(	0x00ec,0x0000);
+	setCop( 0x00ec,0x0000);
 	setCop( 0x00ee,0x0000);
-	setCop(	0x00f0,0x0000);
+	setCop( 0x00f0,0x0000);
 	setCop( 0x00f2,0x0000);
-	setCop(	0x0100,0x5200);
+	setCop( 0x0100,0x5200);
 	setCop( 0x0102,0x0000);	//	 5 bitplanes
-	setCop(	0x0104,0x0033);
+	setCop(0x0104,0x0033);
 	setCop( 0x01FC,0x0000);
-	setCop(	0x10c,0x11,0x106,0);
+	setCop( 0x010c,0x0011);
+	setCop( 0x0106,0x0000);
 
 Mod = ptr;
 
