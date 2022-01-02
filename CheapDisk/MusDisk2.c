@@ -44,6 +44,7 @@ char *copper2 = NULL;
 char *Com = NULL;
 char *r38d0 = NULL;
 char *Sprt = NULL;
+char *Eq1 = NULL;
 
 char *Scr1 = NULL;
 char *Scr1E = NULL;
@@ -53,7 +54,9 @@ char *FontE = NULL;
 
 uint16 Compteur = 8;
 
-char *coul1,*coul2,*coul3,*coul4,*coul5,*coul6,*coul7,*coul8,*coul9,*coul10;
+char *mt_SongDataPtr = NULL;
+
+char *coul,*coul0,*coul1,*coul2,*coul3,*coul4,*coul5,*coul6,*coul7,*coul8,*coul9,*coul10;
 char *mm1,*mm2,*mm3,*mm4,*mm5,*mm6,*mm7,*mm8,*mm9;
 
 void *Tcoul[10];
@@ -106,6 +109,21 @@ void PauseCafe2();
 void EffCoul();
 void RestoreFond();
 void GereEqual();
+void mt_init();
+void mt_music();
+void mt_VolumeSlide();
+
+
+extern uint8 mt_speed;
+extern uint8 mt_counter;
+extern uint8 mt_SongPos;
+extern uint8 mt_PBreakPos;
+extern uint8 mt_PosJumpFlag;
+extern uint8 mt_PBreakFlag;
+extern uint8 mt_LowMask;
+extern uint8 mt_PattDelTime;
+
+extern uint8 mt_PattDelTime2[];
 
 uint32 WAIT = 0;
 uint16 _permit = 0;
@@ -728,8 +746,8 @@ void PauseCafe2()									//	PauseCafe2:	; d0=Nb secondes
 													//	;====================================================================
 void GereEqual()
 {													//	GereEqual:
-	a0=TableEqu+2;									//		lea	TableEqu+2,a0
-	a1=Eq1+2;										//		lea	Eq1+2,a1
+	a0= (uint32) TableEqu+2;							//		lea	TableEqu+2,a0
+	a1= (uint32) Eq1+2;										//		lea	Eq1+2,a1
 													//		moveq	#4-1,d0
 	for (d0=4;d0;d0--) {							//	CopyEqu:cmp	#$229,(a1)
 		if ( ld_w(a1) != 0x229)	{					//		beq	PasDec
@@ -864,16 +882,21 @@ void irq3()											//	irq3:
 #define n_funkoffset		35						//	n_funkoffset	EQU	35 ; B
 #define n_wavestart			36						//	n_wavestart	EQU	36 ; L
 #define n_reallength		40						//	n_reallength	EQU	40 ; W
+
 													//	
-													//	mt_init	move.l	mt_data,A0
-													//		MOVE.L	A0,mt_SongDataPtr
-													//		MOVE.L	A0,A1
-													//		LEA	952(A1),A1
-													//		MOVEQ	#127,D0
-													//		MOVEQ	#0,D1
-													//	mtloop	MOVE.L	D1,D2
+void mt_init()											//	mt_init
+{
+	a0 = (uint32) mt_data;								//		move.l	mt_data,A0
+	st_l(mt_SongDataPtr,ld_l(a0));							//		MOVE.L	A0,mt_SongDataPtr
+	a1 = a0;											//		MOVE.L	A0,A1
+	a1 = a1 +952;										//		LEA	952(A1),A1
+	d0 = 127;											//		MOVEQ	#127,D0
+	d1 = 0;											//		MOVEQ	#0,D1
+													//	mtloop
+													//		MOVE.L	D1,D2
 													//		SUBQ.W	#1,D0
-													//	mtloop2	MOVE.B	(A1)+,D1
+													//	mtloop2
+													//		MOVE.B	(A1)+,D1
 													//		CMP.B	D2,D1
 													//		BGT.S	mtloop
 													//		DBRA	D0,mtloop2
@@ -886,7 +909,8 @@ void irq3()											//	irq3:
 													//		ADD.L	A0,D2
 													//		MOVE.L	D2,A2
 													//		MOVEQ	#30,D0
-													//	mtloop3	CLR.L	(A2)
+													//	mtloop3
+													//		CLR.L	(A2)
 													//		MOVE.L	A2,(A1)+
 													//		MOVEQ	#0,D1
 													//		MOVE.W	42(A0),D1
@@ -907,7 +931,8 @@ void irq3()											//	irq3:
 													//		MOVE.W	#$F,$DFF096
 }													//		RTS
 													//	
-													//	mt_music
+void mt_music()										//	mt_music
+{
 													//		MOVEM.L	D0-D4/A0-A6,-(SP)
 													//		ADDQ.B	#1,mt_counter
 													//		MOVE.B	mt_counter(PC),D0
@@ -1548,18 +1573,18 @@ void mt_Tremolo()									//	mt_Tremolo
 void mt_SampleOffset()								//	mt_SampleOffset
 {
 	d0 =0;											//		MOVEQ	#0,D0
-	d0.b0 = ld_b(a6+n_cmdlo);						//		MOVE.B	n_cmdlo(A6),D0
-	if (D0.b0 != 0)									//		BEQ.S	mt_sononew
+	D0.b0 = ld_b(a6+n_cmdlo);							//		MOVE.B	n_cmdlo(A6),D0
+	if (D0.b0 != 0)										//		BEQ.S	mt_sononew
 	{
-		ld_b(a6+n_sampleoffset,D0.b0);				//		MOVE.B	D0,n_sampleoffset(A6)
+		ld_b(a6+n_sampleoffset,D0.b0);					//		MOVE.B	D0,n_sampleoffset(A6)
 	}												//	mt_sononew
-	d0 = ld_b(a6+b_n_sampleoffset);					//		MOVE.B	n_sampleoffset(A6),D0
-	D0.lw <<= 7;									//		LSL.W	#7,D0
-	if (D0<=st_ld(a6+n_length))						//		CMP.W	n_length(A6),D0
+	d0 = ld_b(a6+n_sampleoffset);							//		MOVE.B	n_sampleoffset(A6),D0
+	D0.lw <<= 7;										//		LSL.W	#7,D0
+	if ( D0.lw <= ld_w(a6+n_length) )						//		CMP.W	n_length(A6),D0
 	{												//		BGE.S	mt_sofskip
-		st_lw(a6+n_length,d0);							//		SUB.W	D0,n_length(A6)
+		st_lw(a6+n_length,ld_lw(a6+n_length)- d0);			//		SUB.W	D0,n_length(A6)
 		D0.lw <<= 1;									//		LSL.W	#1,D0
-		st_l(a6+n_start,ld_l(a6+n_start)+D0);			//		ADD.L	D0,n_start(A6)
+		st_l(a6+n_start,ld_l(a6+n_start)+d0);				//		ADD.L	D0,n_start(A6)
 	}
 }													//		RTS
 
@@ -1843,33 +1868,33 @@ void mt_NoteDelay()									//	mt_NoteDelay
 													//		MOVE.W	(A6),D0
 													//		BEQ	mt_Return2
 													//		MOVE.L	D1,-(SP)
-	mt_DoRetrig();									//		BRA	mt_DoRetrig
+	mt_DoRetrig();										//		BRA	mt_DoRetrig
 }
 													//	
-void mt_PatternDelay()								//	mt_PatternDelay
+void mt_PatternDelay()									//	mt_PatternDelay
 {
-	if (mt_counter != 0)							//		TST.B	mt_counter
+	if (mt_counter != 0)									//		TST.B	mt_counter
 	{
-		mt_Return2();								//		BNE	mt_Return2
+		mt_Return2();									//		BNE	mt_Return2
 		return;
 	}
 
 	d0 = 0;											//		MOVEQ	#0,D0
-	d0 = ld_b(a6+n_cmdlo);							//		MOVE.B	n_cmdlo(A6),D0
+	d0 = ld_b(a6+n_cmdlo);								//		MOVE.B	n_cmdlo(A6),D0
 	D0.b0 &= 0x0F;									//		AND.B	#$0F,D0
 
-	if (mt_PattDelTime2 != 0) 						//		TST.B	mt_PattDelTime2
+	if (mt_PattDelTime2 != 0) 								//		TST.B	mt_PattDelTime2
 	{
-		mt_Return2();								//		BNE	mt_Return2
+		mt_Return2();									//		BNE	mt_Return2
 		return;
 	}
 
 
-	d0 += 1;										//		ADDQ.B	#1,D0
-	mt_PattDelTime = d0;							//		MOVE.B	D0,mt_PattDelTime
+	d0 += 1;											//		ADDQ.B	#1,D0
+	mt_PattDelTime = d0;								//		MOVE.B	D0,mt_PattDelTime
 }													//		RTS
 													//	
-void mt_FunkIt()									//	mt_FunkIt
+void mt_FunkIt()										//	mt_FunkIt
 {
 													//		TST.B	mt_counter
 													//		BNE	mt_Return2
@@ -1913,102 +1938,101 @@ void mt_FunkIt()									//	mt_FunkIt
 }													//		RTS
 
 
-uint8_t mt_FunkTable[]={ 0,5,6,7,8,10,11,13,16,19,22,26,32,43,64,128 };
+uint8 mt_FunkTable[]={ 0,5,6,7,8,10,11,13,16,19,22,26,32,43,64,128 };
 
-uint8_t mt_VibratoTable[]={
-	dc.b   0, 24, 49, 74, 97,120,141,161
-	dc.b 180,197,212,224,235,244,250,253
-	dc.b 255,253,250,244,235,224,212,197
-	dc.b 180,161,141,120, 97, 74, 49, 24};
+uint8 mt_VibratoTable[]={
+	0, 24, 49, 74, 97,120,141,161,
+	180,197,212,224,235,244,250,253,
+	255,253,250,244,235,224,212,197,
+	180,161,141,120, 97, 74, 49, 24};
 
-uint16_t mt_PeriodTable[]={
+uint16 mt_PeriodTable[]={
 // Tuning 0, Normal
-	dc.w	856,808,762,720,678,640,604,570,538,508,480,453
-	dc.w	428,404,381,360,339,320,302,285,269,254,240,226
-	dc.w	214,202,190,180,170,160,151,143,135,127,120,113
+		856,808,762,720,678,640,604,570,538,508,480,453,
+		428,404,381,360,339,320,302,285,269,254,240,226,
+		214,202,190,180,170,160,151,143,135,127,120,113,
 // Tuning 1
-	dc.w	850,802,757,715,674,637,601,567,535,505,477,450
-	dc.w	425,401,379,357,337,318,300,284,268,253,239,225
-	dc.w	213,201,189,179,169,159,150,142,134,126,119,113
+		850,802,757,715,674,637,601,567,535,505,477,450,
+		425,401,379,357,337,318,300,284,268,253,239,225,
+		213,201,189,179,169,159,150,142,134,126,119,113,
 // Tuning 2
-	dc.w	844,796,752,709,670,632,597,563,532,502,474,447
-	dc.w	422,398,376,355,335,316,298,282,266,251,237,224
-	dc.w	211,199,188,177,167,158,149,141,133,125,118,112
+		844,796,752,709,670,632,597,563,532,502,474,447,
+		422,398,376,355,335,316,298,282,266,251,237,224,
+		211,199,188,177,167,158,149,141,133,125,118,112,
 // Tuning 3
-	dc.w	838,791,746,704,665,628,592,559,528,498,470,444
-	dc.w	419,395,373,352,332,314,296,280,264,249,235,222
-	dc.w	209,198,187,176,166,157,148,140,132,125,118,111
+		838,791,746,704,665,628,592,559,528,498,470,444,
+		419,395,373,352,332,314,296,280,264,249,235,222,
+		209,198,187,176,166,157,148,140,132,125,118,111,
 // Tuning 4
-	dc.w	832,785,741,699,660,623,588,555,524,495,467,441
-	dc.w	416,392,370,350,330,312,294,278,262,247,233,220
-	dc.w	208,196,185,175,165,156,147,139,131,124,117,110
+		832,785,741,699,660,623,588,555,524,495,467,441,
+		416,392,370,350,330,312,294,278,262,247,233,220,
+		208,196,185,175,165,156,147,139,131,124,117,110,
 // Tuning 5
-	dc.w	826,779,736,694,655,619,584,551,520,491,463,437
-	dc.w	413,390,368,347,328,309,292,276,260,245,232,219
-	dc.w	206,195,184,174,164,155,146,138,130,123,116,109
+		826,779,736,694,655,619,584,551,520,491,463,437,
+		413,390,368,347,328,309,292,276,260,245,232,219,
+		206,195,184,174,164,155,146,138,130,123,116,109,
 // Tuning 6
-	dc.w	820,774,730,689,651,614,580,547,516,487,460,434
-	dc.w	410,387,365,345,325,307,290,274,258,244,230,217
-	dc.w	205,193,183,172,163,154,145,137,129,122,115,109
+		820,774,730,689,651,614,580,547,516,487,460,434,
+		410,387,365,345,325,307,290,274,258,244,230,217,
+		205,193,183,172,163,154,145,137,129,122,115,109,
 // Tuning 7
-	dc.w	814,768,725,684,646,610,575,543,513,484,457,431
-	dc.w	407,384,363,342,323,305,288,272,256,242,228,216
-	dc.w	204,192,181,171,161,152,144,136,128,121,114,108
+		814,768,725,684,646,610,575,543,513,484,457,431,
+		407,384,363,342,323,305,288,272,256,242,228,216,
+		204,192,181,171,161,152,144,136,128,121,114,108,
 // Tuning -8
-	dc.w	907,856,808,762,720,678,640,604,570,538,508,480
-	dc.w	453,428,404,381,360,339,320,302,285,269,254,240
-	dc.w	226,214,202,190,180,170,160,151,143,135,127,120
+		907,856,808,762,720,678,640,604,570,538,508,480,
+		453,428,404,381,360,339,320,302,285,269,254,240,
+		226,214,202,190,180,170,160,151,143,135,127,120,
 // Tuning -7
-	dc.w	900,850,802,757,715,675,636,601,567,535,505,477
-	dc.w	450,425,401,379,357,337,318,300,284,268,253,238
-	dc.w	225,212,200,189,179,169,159,150,142,134,126,119
+		900,850,802,757,715,675,636,601,567,535,505,477,
+		450,425,401,379,357,337,318,300,284,268,253,238,
+		225,212,200,189,179,169,159,150,142,134,126,119,
 // Tuning -6
-	dc.w	894,844,796,752,709,670,632,597,563,532,502,474
-	dc.w	447,422,398,376,355,335,316,298,282,266,251,237
-	dc.w	223,211,199,188,177,167,158,149,141,133,125,118
+		894,844,796,752,709,670,632,597,563,532,502,474,
+		447,422,398,376,355,335,316,298,282,266,251,237,
+		223,211,199,188,177,167,158,149,141,133,125,118,
 // Tuning -5
-	dc.w	887,838,791,746,704,665,628,592,559,528,498,470
-	dc.w	444,419,395,373,352,332,314,296,280,264,249,235
-	dc.w	222,209,198,187,176,166,157,148,140,132,125,118
+		887,838,791,746,704,665,628,592,559,528,498,470,
+		444,419,395,373,352,332,314,296,280,264,249,235,
+		222,209,198,187,176,166,157,148,140,132,125,118,
 // Tuning -4
-	dc.w	881,832,785,741,699,660,623,588,555,524,494,467
-	dc.w	441,416,392,370,350,330,312,294,278,262,247,233
-	dc.w	220,208,196,185,175,165,156,147,139,131,123,117
+		881,832,785,741,699,660,623,588,555,524,494,467,
+		441,416,392,370,350,330,312,294,278,262,247,233,
+		220,208,196,185,175,165,156,147,139,131,123,117,
 // Tuning -3
-	dc.w	875,826,779,736,694,655,619,584,551,520,491,463
-	dc.w	437,413,390,368,347,328,309,292,276,260,245,232
-	dc.w	219,206,195,184,174,164,155,146,138,130,123,116
+		875,826,779,736,694,655,619,584,551,520,491,463,
+		437,413,390,368,347,328,309,292,276,260,245,232,
+		219,206,195,184,174,164,155,146,138,130,123,116,
 // Tuning -2
-	dc.w	868,820,774,730,689,651,614,580,547,516,487,460
-	dc.w	434,410,387,365,345,325,307,290,274,258,244,230
-	dc.w	217,205,193,183,172,163,154,145,137,129,122,115
+		868,820,774,730,689,651,614,580,547,516,487,460,
+		434,410,387,365,345,325,307,290,274,258,244,230,
+		217,205,193,183,172,163,154,145,137,129,122,115,
 // Tuning -1
-	dc.w	862,814,768,725,684,646,610,575,543,513,484,457
-	dc.w	431,407,384,363,342,323,305,288,272,256,242,228
-	dc.w	216,203,192,181,171,161,152,144,136,128,121,114 };
+		862,814,768,725,684,646,610,575,543,513,484,457,
+		431,407,384,363,342,323,305,288,272,256,242,228,
+		216,203,192,181,171,161,152,144,136,128,121,114 };
 
-uint32_t mt_chan1temp[]={0,0,0,0,0,0x00010000,0,  0,0,0,0};
-uint32_t mt_chan2temp[]={0,0,0,0,0,0x00020000,0,  0,0,0,0};
-uint32_t mt_chan3temp[]={0,0,0,0,0,0x00040000,0,  0,0,0,0};
-uint32_t mt_chan4temp[]={0,0,0,0,0,0x00080000,0,  0,0,0,0};
+uint32 mt_chan1temp[]={0,0,0,0,0,0x00010000,0,0,0,0,0};
+uint32 mt_chan2temp[]={0,0,0,0,0,0x00020000,0,0,0,0,0};
+uint32 mt_chan3temp[]={0,0,0,0,0,0x00040000,0,0,0,0,0};
+uint32 mt_chan4temp[]={0,0,0,0,0,0x00080000,0,0,0,0,0};
 
-uint32_t mt_SampleStarts[] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-		dc.l	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+uint32 mt_SampleStarts[] = {
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
-void *mt_SongDataPtr = NULL;
+uint8 mt_speed		= 6;
+uint8 mt_counter		= 0;
+uint8 mt_SongPos		= 0;
+uint8 mt_PBreakPos		= 0;
+uint8 mt_PosJumpFlag	= 0;
+uint8 mt_PBreakFlag		= 0;
+uint8 mt_LowMask		= 0;
+uint8 mt_PattDelTime	= 0;
+uint8 mt_PattDelTime2[]	= { 0,0 };
 
-uint8 mt_speed	= 6
-uint8 mt_counter	= 0
-uint8 mt_SongPos	= 0
-uint8 mt_PBreakPos	= 0
-uint8 mt_PosJumpFlag	= 0
-uint8 mt_PBreakFlag	= 0
-uint8 mt_LowMask	= 0
-uint8 mt_PattDelTime	= 0
-uint8 mt_PattDelTime2[] = { 0,0 };
-
-uint16_t mt_PatternPos = 0;
-uint16_t mt_DMACONtemp = 0;
+uint16 mt_PatternPos = 0;
+uint16 mt_DMACONtemp = 0;
 ;/* End of File */
 
 uint16 Ritchy_Volumes[]={
@@ -2021,13 +2045,13 @@ uint16 Ritchy_Volumes[]={
 	0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0};
 
-void *GfxBase = NULL;
-const char GfxName[] = "graphics.library";
+// void *GfxBase = NULL;
+// const char GfxName[] = "graphics.library";
 
 
-	section chip,data
+//	section chip,data
 
-uint16_t Pointeur[]={
+uint16 Pointeur[]={
 	0x0000,0x0000,
 	0xFC00,0xF800,
 	0x8800,0xF000,
@@ -2041,7 +2065,7 @@ uint16_t Pointeur[]={
 	0x0000,0x0000};
 
 
-uint16_t safemem[]={0,0};
+uint16 safemem[]={0,0};
 
 //copper list
 
@@ -2246,7 +2270,7 @@ Sprt = ptr;
 	setCop(	0x180,0x033a );
 	setCop( 0x182,0x0fff );
 
-Coul = ptr;
+coul = ptr;
 
 	setCop(	0x184,0xeef );
 	setCop(	0x186,0x0ccf );
@@ -2283,7 +2307,9 @@ Coul = ptr;
 //; Origine EEF
 //; 55D,358,55d
 
-coul0:	dc.w	0x500f,0xfffe,0x184,0xeef
+coul0 = ptr;
+	setCop( 0x500f,0xfffe );
+	setCop( 0x184,0xeef );
 
 coul1 = ptr; 
 	setCop( 0x930f,0xfffe );
