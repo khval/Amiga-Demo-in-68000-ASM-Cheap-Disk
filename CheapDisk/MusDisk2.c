@@ -34,17 +34,22 @@ struct Custom *custom = &_custom;	// store locally... handle things with do_func
 struct Custom *custom = 0xDFF000;
 #endif
 
-char *PicN = NULL;
-char *Bpls = NULL;
-char *Bpls2 = NULL;
-char *Mod = NULL;
+uint32 *Bpls = NULL;
+uint32 *Bpls2 = NULL;
+uint32 *Mod = NULL;
+
+uint32 *copper = NULL;
+uint32 *copper2 = NULL;
+uint32 *Com = NULL;
+uint32 *r38d0 = NULL;
+uint32 *Sprt = NULL;
+uint32 *Eq1 = NULL;
+
 char *Present = NULL;
-char *copper = NULL;
-char *copper2 = NULL;
-char *Com = NULL;
-char *r38d0 = NULL;
-char *Sprt = NULL;
-char *Eq1 = NULL;
+char *PresentE = NULL;
+
+char *PicN = NULL;
+char *PicNE = NULL;
 
 char *Scr1 = NULL;
 char *Scr1E = NULL;
@@ -56,8 +61,8 @@ uint16 Compteur = 8;
 
 char *mt_SongDataPtr = NULL;
 
-char *coul,*coul0,*coul1,*coul2,*coul3,*coul4,*coul5,*coul6,*coul7,*coul8,*coul9,*coul10;
-char *mm1,*mm2,*mm3,*mm4,*mm5,*mm6,*mm7,*mm8,*mm9;
+uint32 *coul,*coul0,*coul1,*coul2,*coul3,*coul4,*coul5,*coul6,*coul7,*coul8,*coul9,*coul10;
+struct Module *mm1,*mm2,*mm3,*mm4,*mm5,*mm6,*mm7,*mm8,*mm9;
 
 void *Tcoul[10];
 void *tmm[10];
@@ -113,7 +118,6 @@ void mt_init();
 void mt_music();
 void mt_VolumeSlide();
 
-
 extern uint8 mt_speed;
 extern uint8 mt_counter;
 extern uint8 mt_SongPos;
@@ -136,11 +140,25 @@ uint8 Auto =	0;
 char *Nounou,*NounouE;
 char *Pic,*PicE;
 char *Buffer,*BufferE;
+
+#define ld_b(a) *((uint8 *) (a))
+#define ld_sb(a) *((int8 *) (a))
+#define ld_w(a) *((uint16 *) (a))
+#define ld_sw(a) *((int16 *) (a))
+#define ld_l(a) *((uint32 *) (a))
+#define ld_sl(a) *((int32 *) (a))
+
+#define st_b(a,v) *((uint8 *) (a)) = (uint8) (v)
+#define st_w(a,v) *((uint16 *) (a)) = (uint16) (v)
+#define st_l(a,v) *((uint32 *) (a)) = (uint32) (v)
+
+#define swap_d(num) D ## num.b32 = (D ## num.lw << 16  | D ## num.hw)
+
 													//	
 													//	
 void code()											//		section fast,code
 {													//	
-	movem_push(RD0,RA6);							//	r:	movem.l	d0-d7/a0-a6,-(a7)
+	movem_push(RD0,RA6);								//	r:	movem.l	d0-d7/a0-a6,-(a7)
 													//	
 													//		clr.l	0
 													//	
@@ -159,33 +177,33 @@ void code()											//		section fast,code
 	d0 = (uint32) PicN;									//		move.l	#PicN,d0
 	a0 = (uint32) Bpls+6;								//		lea	Bpls+6,a0
 	d1 = 5;											//		moveq	#5-1,d1
-	for (;d1;d1--)									//	CopyBpls:
+	for (;d1;d1--)										//	CopyBpls:
 	{
-		st_w(a0,d0);								//		move	d0,(a0)
+		st_w(a0,d0);									//		move	d0,(a0)
 		swap_d(0);									//		swap	d0
-		st_w(a0-4,d0);								//		move	d0,-4(a0)
-		dwap_d(0);									//		swap	d0
+		st_w(a0-4,d0);									//		move	d0,-4(a0)
+		swap_d(0);									//		swap	d0
 		d0+=18;										//		add.l	#18,d0
 		a0+=8;										//		addq.l	#8,a0
 	}												//		dbf	d1,CopyBpls
 													//	
-	st_w(Mod+2,18*4);								//		move	#18*4,Mod+2
-	st_w(Mod+6,18*4);								//		move	#18*4,Mod+6
+	st_w(Mod+2,18*4);									//		move	#18*4,Mod+2
+	st_w(Mod+6,18*4);									//		move	#18*4,Mod+6
 													//	
 													//		move.l	4.w,a6
 													//		jsr	-132(a6)
-	mt_init();										//		bsr	mt_init
+	mt_init();											//		bsr	mt_init
 													//		move.l	$6c.w,saveirq3+2
 													//		move.l	#irq3,$6c.w
 													//	
 													//	
-	a0 = (uint32) Bpls2+6;									//		lea	Bpls2+6,a0
-	d0 = (uint32) Present;									//		move.l	#Present,d0
-	for(d1=3;d1;d1--)								//		moveq	#3-1,d1
+	a0 = (uint32) Bpls2+6;								//		lea	Bpls2+6,a0
+	d0 = (uint32) Present;								//		move.l	#Present,d0
+	for(d1=3;d1;d1--)									//		moveq	#3-1,d1
 	{
-		st_w(a0,D0.lw);								//	CopPres:move	d0,(a0)
+		st_w(a0,D0.lw);									//	CopPres:move	d0,(a0)
 													//		swap	d0
-		st_w(a0-4,D0.hw);							//		move	d0,-4(a0)
+		st_w(a0-4,D0.hw);								//		move	d0,-4(a0)
 													//		swap	d0
 		d0+=28;										//		add.l	#28,d0
 		a0+=8;										//		addq.l	#8,a0
@@ -194,26 +212,26 @@ void code()											//		section fast,code
 													//	
 	a5 = (uint32) custom;								//		lea	$dff000,a5
 	a0 = (uint32) copper2;								//		lea	copper2,a0
-	st_l(a5+0x80,a0);								//		move.l	a0,$80(a5)
+	st_l(a5+0x80,a0);									//		move.l	a0,$80(a5)
 													//		clr	$88(a5)
 													//	
-	d0=50*2;										//		move	#50*2,d0
-	PauseCafe2();									//		bsr	PauseCafe2
+	d0=50*2;											//		move	#50*2,d0
+	PauseCafe2();										//		bsr	PauseCafe2
 	st_w(Com+2,0xb200);								//		move	#$b200,Com+2
 													//	
-	for (d7=2;d7;d7--)								//		moveq	#2-1,d7
+	for (d7=2;d7;d7--)									//		moveq	#2-1,d7
 	{												//	President:
 		d0=62;										//		move	#62,d0
-		PauseCafe2();								//		bsr	PauseCafe2
+		PauseCafe2();									//		bsr	PauseCafe2
 		st_b(copper2+6,28);							//		add.b	#28,copper2+6
 	}												//		dbf	d7,President
 													//	
 	d0=62;											//		move	#62,d0
-	PauseCafe2();									//		bsr	PauseCafe2
+	PauseCafe2();										//		bsr	PauseCafe2
 													//	
-	a5 = (uint32) custom;									//		lea	$dff000,a5
-	a0 = (uint32) copper;									//		lea	copper,a0
-	st_l(a5+0x80);									//		move.l	a0,$80(a5)
+	a5 = (uint32) custom;								//		lea	$dff000,a5
+	a0 = (uint32) copper;								//		lea	copper,a0
+	st_l(a5+0x80,a0);									//		move.l	a0,$80(a5)
 													//		clr	$88(a5)
 													//	
 	d0=100;											//		move	#100,d0
@@ -477,8 +495,8 @@ void fin()
 	
 		FonduQuitte();									//		bsr	FonduQuitte
 
-		movem_pull(RA0,RA0);							//		movem.l	(sp)+,d0-d5/a0
-		movem_pull(RD0,RA6);
+		movem_pop(RA0,RA0);							//		movem.l	(sp)+,d0-d5/a0
+		movem_pop(RD0,RA6);
 													//	
 		d5 = !d5;										//	NONO1:	not	d5
 													//	
@@ -512,7 +530,7 @@ void fin()
 	// I think restore display... ==>							//		move.l	38(a0),$80(a5)
 													//		clr	$88(a5)
 													//	
-	movem_pull(RD0,RA6);								//		movem.l	(a7)+,d0-d7/a0-a6	
+	movem_pop(RD0,RA6);								//		movem.l	(a7)+,d0-d7/a0-a6	
 	d0 = 0;											//		moveq	#0,d0
 }													//		rts
 													//	
@@ -563,7 +581,7 @@ void GereScroll()										//	GereScroll:
 	if (Compteur<=0)									//		bpl.b	NoNewLetter
 	{												//	
 		a0 = (uint32) PTtexte;							//		move.l	PTtexte,a0
-		d0 = ls_b(a0); a0++;							//		move.b	(a0)+,d0
+		d0 = ld_b(a0); a0++;							//		move.b	(a0)+,d0
 		if (d0 == 0)									//		bne.b	PasFinDuTexte
 		{
 			a0 = (uint32) Texte;							//		lea	Texte,a0
@@ -749,38 +767,41 @@ void GereEqual()
 	a0= (uint32) TableEqu+2;							//		lea	TableEqu+2,a0
 	a1= (uint32) Eq1+2;										//		lea	Eq1+2,a1
 													//		moveq	#4-1,d0
-	for (d0=4;d0;d0--) {							//	CopyEqu:cmp	#$229,(a1)
-		if ( ld_w(a1) != 0x229)	{					//		beq	PasDec
-			d1 = ld_w(a0);							//		move	(a0),d1	
-			d1 -= ld_w(a1);							//		sub	d1,(a1)
+	for (d0=4;d0;d0--)									//	CopyEqu:
+	{												//		cmp	#$229,(a1)
+		if ( ld_w(a1) != 0x229)							//		beq	PasDec
+		{
+			d1 = ld_w(a0);								//		move	(a0),d1	
+			d1 -= ld_w(a1);								//		sub	d1,(a1)
 		} // PasDec
 		a0 +=4;										//	PasDec:	addq.l	#4,a0
 		a1 +=4;										//		addq.l	#4,a1
 	}												//		dbf	d0,CopyEqu
 }													//		rts
 													//	;====================================================================
-void irq3()											//	irq3:
+void irq3()												//	irq3:
 {
-	movem_push(RD0,RA6);							//		movem.l	d0-d7/a0-a6,-(a7)
+	movem_push(RD0,RA6);								//		movem.l	d0-d7/a0-a6,-(a7)
 													//		move	$dff01e,d0
-	// DFF01C == INTENAR							//		and	$dff01c,d0
-	// test COOPER, DISK bits ==>					//		btst	#5,d0
+	// DFF01C == INTENAR								//		and	$dff01c,d0
+	// test COOPER, DISK bits ==>							//		btst	#5,d0
 													//		beq.w	NoPlay
 													//	
 	WAIT += 1;										//		addq.l	#1,WAIT
-	mots_control();									//		bsr	mots_control
+	mots_control();										//		bsr	mots_control
 													//	
-	if (!_permit)									//		tst	_permit
+	if (!_permit)										//		tst	_permit
 	{												//		bne	NoPlay
 													//	
 		mt_music();									//		bsr	mt_music
 	}
 													//	
-	movem_pull(RD0,RA6);							//	NoPlay:	movem.l	(a7)+,d0-d7/a0-a6
+	movem_pop(RD0,RA6);								//	NoPlay:	movem.l	(a7)+,d0-d7/a0-a6
 													//	saveirq3:
 }													//		jmp	$0
 													//	;====================================================================
-													//	mots_control:
+void mots_control()										//	mots_control:
+{
 													//		lea	Pointeur,a3
 													//		move.b	$dff00a,d0
 													//		move.b	d0,d2
@@ -830,7 +851,7 @@ void irq3()											//	irq3:
 													//		lsl.w	#1,d1
 													//		or.b	d1,d0
 													//		move.b	d0,3(a3)	;Adrsp0+3
-													//		rts
+}													//		rts
 													//	
 													//	;********************************************
 													//	;* ----- Protracker V1.1B Playroutine ----- *
@@ -1234,11 +1255,16 @@ void mt_CheckEfx()
 													//		BEQ	mt_Tremolo
 													//		CMP.B	#$A,D0
 													//		BEQ	mt_VolumeSlide
+}
+
+void mt_Return2()
+{
 													//	mt_Return2
 }													//		RTS
 													//	
-void mt_PerNop() {									//	mt_PerNop
-	a5 = ld_w(a6+n_period);							//		MOVE.W	n_period(A6),6(A5)
+void mt_PerNop()										//	mt_PerNop
+{
+	a5 = ld_w(a6+n_period);								//		MOVE.W	n_period(A6),6(A5)
 }													//		RTS
 													//	
 void mt_Arpeggio() {								//	mt_Arpeggio
@@ -1367,7 +1393,8 @@ void mt_SetTonePorta() {							//	mt_SetTonePorta
 													//		MOVE.B	#1,n_toneportdirec(A6)
 }													//		RTS
 													//	
-void mt_ClearTonePorta() {							//	mt_ClearTonePorta
+void mt_ClearTonePorta()									//	mt_ClearTonePorta
+{
 													//		CLR.W	n_wantedperiod(A6)
 }													//		RTS
 													//	
@@ -1377,7 +1404,11 @@ void mt_TonePortamento()							//	mt_TonePortamento
 													//		BEQ.S	mt_TonePortNoChange
 													//		MOVE.B	D0,n_toneportspeed(A6)
 													//		CLR.B	n_cmdlo(A6)
-													//	mt_TonePortNoChange
+	mt_TonePortNoChange();
+}
+
+void mt_TonePortNoChange()								//	mt_TonePortNoChange
+{
 													//		TST.W	n_wantedperiod(A6)
 													//		BEQ	mt_Return2
 													//		MOVEQ	#0,D0
@@ -1391,17 +1422,22 @@ void mt_TonePortamento()							//	mt_TonePortamento
 													//		BGT.S	mt_TonePortaSetPer
 													//		MOVE.W	n_wantedperiod(A6),n_period(A6)
 													//		CLR.W	n_wantedperiod(A6)
-													//		BRA.S	mt_TonePortaSetPer
-													//	
-													//	mt_TonePortaUp
+	mt_TonePortaSetPer();								//		BRA.S	mt_TonePortaSetPer
+}													//	
+
+void 	mt_TonePortaUp()									//	mt_TonePortaUp
+{
 													//		SUB.W	D0,n_period(A6)
 													//		MOVE.W	n_wantedperiod(A6),D0
 													//		CMP.W	n_period(A6),D0
 													//		BLT.S	mt_TonePortaSetPer
 													//		MOVE.W	n_wantedperiod(A6),n_period(A6)
 													//		CLR.W	n_wantedperiod(A6)
+	mt_TonePortaSetPer();
+}
 													//	
-													//	mt_TonePortaSetPer
+void mt_TonePortaSetPer()								//	mt_TonePortaSetPer
+{
 													//		MOVE.W	n_period(A6),D2
 													//		MOVE.B	n_glissfunk(A6),D0
 													//		AND.B	#$0F,D0
@@ -1442,7 +1478,11 @@ void mt_Vibrato()									//	mt_Vibrato
 													//		OR.B	D0,D2
 													//	mt_vibskip2
 													//		MOVE.B	D2,n_vibratocmd(A6)
-													//	mt_Vibrato2
+	mt_Vibrato2();
+}
+
+void mt_Vibrato2()										//	mt_Vibrato2
+{
 													//		MOVE.B	n_vibratopos(A6),D0
 													//		LEA	mt_VibratoTable(PC),A4
 													//		LSR.W	#2,D0
@@ -1570,37 +1610,45 @@ void mt_Tremolo()									//	mt_Tremolo
 													//		ADD.B	D0,n_tremolopos(A6)
 }													//		RTS
 													//	
-void mt_SampleOffset()								//	mt_SampleOffset
+void mt_SampleOffset()									//	mt_SampleOffset
 {
 	d0 =0;											//		MOVEQ	#0,D0
 	D0.b0 = ld_b(a6+n_cmdlo);							//		MOVE.B	n_cmdlo(A6),D0
 	if (D0.b0 != 0)										//		BEQ.S	mt_sononew
 	{
-		ld_b(a6+n_sampleoffset,D0.b0);					//		MOVE.B	D0,n_sampleoffset(A6)
+		st_b(a6+n_sampleoffset,D0.b0);					//		MOVE.B	D0,n_sampleoffset(A6)
 	}												//	mt_sononew
 	d0 = ld_b(a6+n_sampleoffset);							//		MOVE.B	n_sampleoffset(A6),D0
 	D0.lw <<= 7;										//		LSL.W	#7,D0
 	if ( D0.lw <= ld_w(a6+n_length) )						//		CMP.W	n_length(A6),D0
 	{												//		BGE.S	mt_sofskip
-		st_lw(a6+n_length,ld_lw(a6+n_length)- d0);			//		SUB.W	D0,n_length(A6)
+		st_w(a6+n_length,ld_w(a6+n_length)- d0);			//		SUB.W	D0,n_length(A6)
 		D0.lw <<= 1;									//		LSL.W	#1,D0
 		st_l(a6+n_start,ld_l(a6+n_start)+d0);				//		ADD.L	D0,n_start(A6)
 	}
 }													//		RTS
 
-void mt_sofskip()									//	mt_sofskip
+void mt_sofskip()										//	mt_sofskip
 {
 													//		MOVE.W	#$0001,n_length(A6)
 }													//		RTS
 													//	
-void mt_VolumeSlide()								//	mt_VolumeSlide
+void mt_VolumeSlide()									//	mt_VolumeSlide
 {
 													//		MOVEQ	#0,D0
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		LSR.B	#4,D0
 													//		TST.B	D0
 													//		BEQ.S	mt_VolSlideDown
-													//	mt_VolSlideUp
+	if (d0 == 0)
+	{
+		mt_VolSlideDown();
+		return;
+	}
+}
+
+void mt_VolSlideUp()										//	mt_VolSlideUp
+{
 													//		ADD.B	D0,n_volume(A6)
 													//		CMP.B	#$40,n_volume(A6)
 													//		BMI.S	mt_vsuskip
@@ -1615,7 +1663,11 @@ void mt_VolSlideDown()								//	mt_VolSlideDown
 													//		MOVEQ	#0,D0
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#$0F,D0
-													//	mt_VolSlideDown2
+	mt_VolSlideDown2();
+}
+
+void 	mt_VolSlideDown2()									//	mt_VolSlideDown2
+{
 													//		SUB.B	D0,n_volume(A6)
 													//		BPL.S	mt_vsdskip
 													//		CLR.B	n_volume(A6)
@@ -1764,24 +1816,29 @@ void mt_JumpLoop()									//	mt_JumpLoop
 													//		BEQ.S	mt_jumpcnt
 													//		SUBQ.B	#1,n_loopcount(A6)
 													//		BEQ	mt_Return2
-													//	mt_jmploop	MOVE.B	n_pattpos(A6),mt_PBreakPos
+	mt_jmploop();
+}
+
+void mt_jmploop()										//	mt_jmploop
+{
+													//		MOVE.B	n_pattpos(A6),mt_PBreakPos
 													//		ST	mt_PBreakFlag
 }													//		RTS
 
-void mt_jumpcnt()									//	mt_jumpcnt
+void mt_jumpcnt()										//	mt_jumpcnt
 {
-	st_l(a6+n_loopcount,d0);						//		MOVE.B	D0,n_loopcount(A6)
-	mt_jmploop();									//		BRA.S	mt_jmploop
+	st_l(a6+n_loopcount,d0);								//		MOVE.B	D0,n_loopcount(A6)
+	mt_jmploop();										//		BRA.S	mt_jmploop
 }													//
 
-void mt_SetLoop()									//	mt_SetLoop
+void mt_SetLoop()										//	mt_SetLoop
 {
 													//		MOVE.W	mt_PatternPos(PC),D0
 													//		LSR.W	#4,D0
 													//		MOVE.B	D0,n_pattpos(A6)
 }													//		RTS
 													//	
-void mt_SetTremoloControl()							//	mt_SetTremoloControl
+void mt_SetTremoloControl()								//	mt_SetTremoloControl
 {
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#$0F,D0
@@ -1790,9 +1847,9 @@ void mt_SetTremoloControl()							//	mt_SetTremoloControl
 													//		OR.B	D0,n_wavecontrol(A6)
 }													//		RTS
 													//	
-void mt_RetrigNote()								//	mt_RetrigNote
+void mt_RetrigNote()										//	mt_RetrigNote
 {
-													//		MOVE.L	D1,-(SP)
+	movem_push(RD1,RD1);								//		MOVE.L	D1,-(SP)
 													//		MOVEQ	#0,D0
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#$0F,D0
@@ -1807,10 +1864,18 @@ void mt_RetrigNote()								//	mt_RetrigNote
 													//		MOVE.B	mt_counter(PC),D1
 													//	mt_rtnskp
 													//		DIVU	D0,D1
-													//		SWAP	D1
-													//		TST.W	D1
-													//		BNE.S	mt_rtnend
-													//	mt_DoRetrig
+	swap_d(1)	;										//		SWAP	D1
+	if (d1 != 0 )										//		TST.W	D1
+	{
+		mt_rtnend();									//		BNE.S	mt_rtnend
+		return;
+	}
+
+	mt_DoRetrig();
+}
+
+void mt_DoRetrig()										//	mt_DoRetrig
+{
 													//		MOVE.W	n_dmabit(A6),$DFF096	; Channel DMA off
 													//		MOVE.L	n_start(A6),(A5)	; Set sampledata pointer
 													//		MOVE.W	n_length(A6),4(A5)	; Set length
@@ -1825,17 +1890,23 @@ void mt_RetrigNote()								//	mt_RetrigNote
 													//		DBRA	D0,mt_rtnloop2
 													//		MOVE.L	n_loopstart(A6),(A5)
 													//		MOVE.L	n_replen(A6),4(A5)
-													//	mt_rtnend
-													//		MOVE.L	(SP)+,D1
+	mt_rtnend();
+}
+
+void mt_rtnend()										//	mt_rtnend
+{
+	movem_pop(RD1,RD1);								//		MOVE.L	(SP)+,D1
 }													//		RTS
 													//	
-													//	mt_VolumeFineUp
+void mt_VolumeFineUp()									//	mt_VolumeFineUp
+{
 													//		TST.B	mt_counter
 													//		BNE	mt_Return2
 													//		MOVEQ	#0,D0
 													//		MOVE.B	n_cmdlo(A6),D0
 													//		AND.B	#$F,D0
-													//		BRA	mt_VolSlideUp
+	mt_VolSlideUp();									//		BRA	mt_VolSlideUp
+}
 													//	
 void mt_VolumeFineDown()							//	mt_VolumeFineDown
 {
@@ -2148,16 +2219,20 @@ char *Texteinfo =
 
 void init_copper2()
 {
-copper2 = ptr;
+	uint32 *ptr;
 
-	setCop(	0x008e,0x6981 );
+	copper2 = malloc(sizeof(uint32) * 50 );
+
+ptr = (uint32 *) copper2;
+
+	setCop( 0x008e,0x6981 );	// 4
 	setCop( 0x0090,0x85c1 );
-	setCop(	0x0092,0x0068 );
+	setCop( 0x0092,0x0068 );
 	setCop( 0x0094,0x0098 );
 
 Bpls2 = ptr;
 
-	setCop( 0x00e0,0x0000);
+	setCop( 0x00e0,0x0000);		// 6
 	setCop( 0x00e2,0x0000);
 	setCop( 0x00e4,0x0000);
 	setCop( 0x00e6,0x0000);
@@ -2166,32 +2241,32 @@ Bpls2 = ptr;
 
 Com = ptr;
 
-	setCop(	0x0100,0x0000 );
+	setCop( 0x0100,0x0000 );	// 24
 	setCop( 0x0102,0x0000 );
-	setCop(	0x0104,0x0033 );
+	setCop( 0x0104,0x0033 );
 	setCop( 0x01FC,0x0000 );
-	setCop(	0x010c,0x11);
+	setCop( 0x010c,0x11);
 	setCop( 0x0106,0);
-	setCop(	0x0108,0x0038 );
+	setCop( 0x0108,0x0038 );
 	setCop( 0x010a,0x0038 );
-	setCop(	0x120,0 );
+	setCop( 0x120,0 );
 	setCop( 0x122,0 );
-	setCop(	0x124,0 );
+	setCop( 0x124,0 );
 	setCop( 0x126,0 );
-	setCop(	0x128,0 );
+	setCop( 0x128,0 );
 	setCop( 0x12a,0 );
-	setCop(	0x12c,0 );
+	setCop( 0x12c,0 );
 	setCop( 0x12e,0 );
-	setCop(	0x130,0 );
+	setCop( 0x130,0 );
 	setCop( 0x132,0 );
-	setCop(	0x134,0 );
+	setCop( 0x134,0 );
 	setCop( 0x136,0 );
-	setCop(	0x138,0 );
+	setCop( 0x138,0 );
 	setCop( 0x13a,0 );
-	setCop(	0x13c,0 );
+	setCop( 0x13c,0 );
 	setCop( 0x13e,0 );
 
-	setCop( 0x0106,0x0000 );
+	setCop( 0x0106,0x0000 );	// 9
 	setCop( 0x0180,0x033a );
 	setCop( 0x0182,0x0565 );
 	setCop( 0x0184,0x0676 );
@@ -2201,7 +2276,7 @@ Com = ptr;
 	setCop( 0x018C,0x0BDB );
 	setCop( 0x018E,0x0CEC );
 
-	setCop(	0xce0f,0xfffe);
+	setCop(	0xce0f,0xfffe);		// 3
 	setCop( 0x180,0x229 );
 	setCop( 0xFFFF,0xFFFE);
 }
@@ -2214,15 +2289,18 @@ uint16 TableEqu[] = {
 
 void init_copper()
 {
+	uint32 *ptr;
 
-copper = ptr;
+	copper = malloc(sizeof(uint32) * 110 );
 
-	setCop(	0x008e,0x2981 );
-	setCop(	0x0090,0x29c1 );
+	ptr = (uint32 *) copper;
+
+	setCop( 0x008e,0x2981 );
+	setCop( 0x0090,0x29c1 );
 
 r38d0 = ptr;	
 
-	setCop(	0x0092,0x0080 );
+	setCop( 0x0092,0x0080 );
 	setCop( 0x0094,0x00c0 );
 
 Bpls = ptr;
@@ -2372,41 +2450,128 @@ Eq1 = ptr;
 
 void load_bin()
 {
-	mm1 = load_module("mod.status");											//	mm1:	incbin	'mod.status'
-	mm2 = load_module("mod.adel");											//	mm2:	incbin	'mod.adel'
-	mm3 = load_module("mod.compote");											//	mm3:	incbin	'mod.compote'
-	mm4 = load_module("mod.banzai");											//	mm4:	incbin	'mod.banzai'
-	mm5 = load_module("mod.milk");											//	mm5:	incbin	'mod.milk'
-	mm6 = load_module("mod.jambon");											//	mm6:	incbin	'mod.jambon'
-	mm7 = load_module("mod.atom");											//	mm7:	incbin	'mod.atom'
-	mm8 = load_module("mod.computer");										//	mm8:	incbin	'mod.computer'
-	mm9 = load_module("mod.track");											//	mm9:	incbin	'mod.track'
+	mm1 = PTLoadModule("mod.status");											//	mm1:	incbin	'mod.status'
+	mm2 = PTLoadModule("mod.adel");											//	mm2:	incbin	'mod.adel'
+	mm3 = PTLoadModule("mod.compote");											//	mm3:	incbin	'mod.compote'
+	mm4 = PTLoadModule("mod.banzai");											//	mm4:	incbin	'mod.banzai'
+	mm5 = PTLoadModule("mod.milk");											//	mm5:	incbin	'mod.milk'
+	mm6 = PTLoadModule("mod.jambon");											//	mm6:	incbin	'mod.jambon'
+	mm7 = PTLoadModule("mod.atom");											//	mm7:	incbin	'mod.atom'
+	mm8 = PTLoadModule("mod.computer");										//	mm8:	incbin	'mod.computer'
+	mm9 = PTLoadModule("mod.track");											//	mm9:	incbin	'mod.track'
 };
+
+#define safe_unload_module( varname ) if (varname) { PTUnloadModule( varname ); varname = NULL; }
+
+void unload_bin()
+{
+	safe_unload_module(mm1);
+	safe_unload_module(mm2);
+	safe_unload_module(mm4);
+	safe_unload_module(mm5);
+	safe_unload_module(mm6);
+	safe_unload_module(mm7);
+	safe_unload_module(mm8);
+	safe_unload_module(mm9);
+}
 
 void init_mt_data()
 {
 	mt_data=mm1;
 }
 
+void *load_raw(const char *name, int extraSize,  void **ptrE)
+{
+	void *ptr;
+	BPTR fd;
+	fd = FOpen( name, MODE_OLDFILE, 0  );
+	uint64 size;
+
+	ptr = NULL;
+	*ptrE = NULL;
+
+	if (fd)
+	{
+		ChangeFilePosition( fd , 0 , OFFSET_END);
+		size = GetFilePosition( fd );
+		ChangeFilePosition( fd , 0 , OFFSET_BEGINNING);
+
+		ptr = malloc( size + extraSize );
+		if (ptr)
+		{
+			memset( ptr, 0, size + extraSize );
+
+			FRead( fd , ptr, size ,1 );
+			*ptrE = ptr + size + extraSize;
+		}
+		FClose(fd);
+	}
+
+	if ( *ptrE == NULL )
+	{
+		printf("failed to load %s\n",name);
+		if (ptr) free(ptr);
+		ptr = NULL;
+	}
+
+	return ptr;
+}
+
 void load_bin2()
 {
 	int screenSize = 42*5*12;
 
-	Present	= load_file("RB.Present",0);										//	Present:	incbin	'RB.Present'
-	Font = load_file("RB.Fonte8",18*5*256, &FontE);								//	Font:	incbin	'RB.Fonte8'
+	Present = load_raw("RB.Present",0,&PresentE);								//	Present:	incbin	'RB.Present'
+	Font = load_raw("RB.Fonte8",18*5*256, &FontE);								//	Font:	incbin	'RB.Fonte8'
 	PicN = FontE - 18*5*256;													//	PicN:	blk.b	18*5*256,0
 	PicNE = FontE;
 	FontE -= 18*5*256;
 
-	Nounou = load_file("RB.Nounours",18*5*187, &NounouE);							//	Nounou:	incbin	'RB.Nounours'
-																				//	blk.b	18*5*187,0
+	Nounou = load_raw("RB.Nounours",18*5*187, &NounouE);						//	Nounou:	incbin	'RB.Nounours'
+																		//	blk.b	18*5*187,0
 
-	Pic = load_file("RB.Found",	screenSize * 2 , &PicE );						//	Pic:	incbin	'RB.Fond'
+	Pic = load_raw("RB.Found",	screenSize * 2 , &PicE );							//	Pic:	incbin	'RB.Fond'
 	Scr1 = PicE - screenSize * 2;												//	Scr1:	blk.b	42*5*12,0
 	Scr1E = PicE - screenSize;
-	Buffer = PicE - screenSize;													//	Buffer:	blk.b	42*5*12,0
+	Buffer = PicE - screenSize;												//	Buffer:	blk.b	42*5*12,0
 	BufferE = PicE;
 	Scr1E -= (screenSize * 2);
+}
+
+void unload_bin2()
+{
+	if (Present) free(Present);
+	if (Font) free(Font);
+	if (Nounou) free(Nounou);
+	if (Pic) free(Pic);
+
+	Present = NULL;
+	Font = NULL;
+	Nounou = NULL;
+	Pic = NULL;
+}
+
+void cleanup()
+{
+	unload_bin2();
+	unload_bin();
+	close_libs();
+}
+
+int main()
+{
+	if (open_libs() == false)
+	{
+		close_libs();
+		return;
+	}
+
+	load_bin();
+	load_bin2();
+
+	cleanup();
+
+	return 0;
 }
 
 //finintro:
