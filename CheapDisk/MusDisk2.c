@@ -3,7 +3,7 @@
 													//	;	Raison inconnue ???
 													//	;	Assemble avec ASM-One V1.20 By T.F.A.
 
-
+#define use_old_tracker 0
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -117,6 +117,18 @@ void GereEqual();
 void mt_init();
 void mt_music();
 void mt_VolumeSlide();
+void mots_control();
+void mt_TonePortNoChange();
+void mt_TonePortaSetPer();
+void mt_Vibrato2();
+void mt_VolSlideDown();
+void mt_VolSlideDown2();
+void mt_jmploop();
+void mt_DoRetrig();
+void mt_rtnend();
+void mt_end();
+void WAITBLIT();
+void SaveFond();
 
 extern uint8 mt_speed;
 extern uint8 mt_counter;
@@ -132,7 +144,7 @@ extern uint8 mt_PattDelTime2[];
 uint32 WAIT = 0;
 uint16 _permit = 0;
 uint16 mousex = 0x80;
-uint16 mousey = 0x70;
+uint16 mousey = 0x92;
 uint8 lastx =	0;
 uint8 lasty =	0;
 uint8 Auto =	0;
@@ -154,6 +166,8 @@ char *Buffer,*BufferE;
 
 #define swap_d(num) D ## num.b32 = (D ## num.lw << 16  | D ## num.hw)
 
+bool esc_key = false;
+
 													//	
 													//	
 void code()											//		section fast,code
@@ -173,6 +187,7 @@ void code()											//		section fast,code
 													//	;	move	d0,$96(a5)
 													//	;	move	d0,$9a(a5)
 													//	;	move	#$83E0,$96(a5)
+
 													//	
 	d0 = (uint32) PicN;									//		move.l	#PicN,d0
 	a0 = (uint32) Bpls+6;								//		lea	Bpls+6,a0
@@ -186,13 +201,20 @@ void code()											//		section fast,code
 		d0+=18;										//		add.l	#18,d0
 		a0+=8;										//		addq.l	#8,a0
 	}												//		dbf	d1,CopyBpls
+
+
 													//	
 	st_w(Mod+2,18*4);									//		move	#18*4,Mod+2
 	st_w(Mod+6,18*4);									//		move	#18*4,Mod+6
 													//	
+
 													//		move.l	4.w,a6
 													//		jsr	-132(a6)
+
+#if use_old_tracker
 	mt_init();											//		bsr	mt_init
+#endif
+
 													//		move.l	$6c.w,saveirq3+2
 													//		move.l	#irq3,$6c.w
 													//	
@@ -209,6 +231,8 @@ void code()											//		section fast,code
 		a0+=8;										//		addq.l	#8,a0
 	}												//		dbf	d1,CopPres
 													//	
+
+
 													//	
 	a5 = (uint32) custom;								//		lea	$dff000,a5
 	a0 = (uint32) copper2;								//		lea	copper2,a0
@@ -240,7 +264,7 @@ void code()											//		section fast,code
 	d7 = 431;										//		move	#431,d7
 													//	
 	do {
-		WAITTOF();									//	M2:	cmp.b	#80,$dff006
+		WaitTOF();									//	M2:	cmp.b	#80,$dff006
 													//		bne	M2
 													//	M3:	cmp.b	#80,$dff006
 													//		beq	M3
@@ -306,121 +330,160 @@ void code()											//		section fast,code
 													//	
 	st_w(coul10+6,0xF90);								//		move	#$F90,coul10+6
 													//	
-	SaveFound();										//		bsr	SaveFond
+	SaveFond();										//		bsr	SaveFond
 													//	
+
 	// VHPOSR is $dff006
-													//	souris:	cmp.b	#200,$dff006
+	do												//	souris:
+	{
+
+		WaitTOF();									//		cmp.b	#200,$dff006
 													//		bne.b	Souris
-	wait_beem_pos(200);								//	s2:	cmp.b	#200,$dff006
+													//	s2:	cmp.b	#200,$dff006
 													//		beq.b	s2
-	// POTINP is $dff016									//	
+		// POTINP is $dff016								//	
 													//		btst	#10,$dff016
 													//		beq.b	Souris
 													//	
+
 													//	;	move	#$F00,$dff180
-	GereScroll();										//		bsr.w	GereScroll
+		GereScroll();									//		bsr.w	GereScroll
 													//	;	move	#$0F0,$dff180
-	WAITBlit();											//	wBbb:	btst	#14,$dff002
+
+
+		WAITBLIT();									//	wBbb:	btst	#14,$dff002
 													//		bne	Wbbb
-	RestoreFond();										//		bsr	RestoreFond
+		RestoreFond();									//		bsr	RestoreFond
 													//	;	move	#$00,$dff180
 													//	
-	GereEqual();										//		bsr	GereEqual
+
+		GereEqual();									//		bsr	GereEqual
+
 													//	
-	if (!CheckMouse())									//		btst	#6,$bfe001
-	{
-		PasSouris();									//		bne	PasSouris
-		return;
-	}
+		if (CheckMouse())								//		btst	#6,$bfe001
+		{
+													//		bne	PasSouris
+			
+		
 													//	
-	D1.hw = 0;										//		moveq	#0,d1
-	D1.lw = mousey;									//		move	mousey,d1
+			D1.hw = 0;								//		moveq	#0,d1
+			D1.lw = mousey;							//		move	mousey,d1
 													//		cmp	#$92+81,d1
-	if (d1>=0x92+81)
-	{
-		PasSong();									//		bhs	PasSong
-		return;
-	}
-													//	
-	EffCoul();										//		bsr	EffCoul
-	D1.hw = 0;										//		moveq	#0,d1
-	D1.lw = mousey;									//		move	mousey,d1
-	d1 -= 0x92;										//		sub	#$92,d1
-													//		divu	#9,d1
-	D1.hw = D1.lw % 9;
-	D1.lw /= 9;
-													//		ext.l	d1		; 0-9
-	d1 = D1.lw | ((D1.lw & 0x8000) ? 0xFFFF0000 : 0x00000000);
+			if (d1>=0x92+81)
+			{
+				PasSong();								//		bhs	PasSong
+				continue;
+			}
 
-	d1 <<= 2;										//		lsl.l	#2,d1		; *4
-	a0 = (uint32) Tcoul;										//		lea	Tcoul,a0
-	st_l(a0,ls_l(a0+d1));							//		move.l	(a0,d1),a0
-	st_w(a0+6,0x358);								//		move	#$358,6(a0)
-													//	
-	D1.hw = 0;										//		moveq	#0,d0
-	D1.lw = mousey;									//		move	mousey,d0
-	d0 += 0x92;										//		sub	#$92,d0
-													//		divu	#9,d0
-	D0.hw = D0.lw % 9;
-	D0.lw /= 9;
-													//		ext.l	d0
-	d0 = D0.lw | ((D0.lw & 0x8000) ? 0xFFFF0000 : 0x00000000);
+														//	
+			EffCoul();										//		bsr	EffCoul
 
-	d0 <<= 2;										//		lsl.l	#2,d0
-	a0 = (uint32) tmm;										//		lea	tmm,a0
-	d0 = ld_l(a0+d0);								//		move.l	(a0,d0),d0
+			d1 = 0;										//		moveq	#0,d1
+			D1.lw = mousey;								//		move	mousey,d1
+			D1.lw -= 0x92;									//		sub	#$92,d1
+														//		divu	#9,d1
+			D1.hw = D1.lw % 9;
+			D1.lw /= 9;
+														//		ext.l	d1		; 0-9
+			d1 = D1.lw | ((D1.lw & 0x8000) ? 0xFFFF0000 : 0x00000000);
 
-	if ( (uint32) mt_data != d0)								//		cmp.l	mt_data,d0
-	{												//		beq	PasSouris
-													//	
-													//		move	#-1,_permit
-		MT_END();									//		bsr	MT_END
-		mt_data = (char *) d0;							//		move.l	d0,mt_data
-		MT_INIT();									//		bsr	MT_INIT
-													//		clr	_permit
-													//	
-	};												//		bra	PasSouris
+			d1 <<= 2;									//		lsl.l	#2,d1		; *4
+			a0 = (uint32) Tcoul;								//		lea	Tcoul,a0
 
-	PasSouris();
+			a0 = ld_l(a0+d1);								//		move.l	(a0,d1),a0
+
+			st_w(a0+6,0x358);								//		move	#$358,6(a0)
+			
+			D0.hw = 0;									//		moveq	#0,d0
+			D0.lw = mousey;								//		move	mousey,d0
+			d0 += 0x92;									//		sub	#$92,d0
+
+			D0.hw = D0.lw % 9;								//		divu	#9,d0
+			D0.lw /= 9;
+														//		ext.l	d0
+			d0 = D0.lw | ((D0.lw & 0x8000) ? 0xFFFF0000 : 0x00000000);
+
+			d0 <<= 2;									//		lsl.l	#2,d0
+			a0 = (uint32) tmm;								//		lea	tmm,a0
+			d0 = ld_l(a0+d0);								//		move.l	(a0,d0),d0
+	
+
+
+#if use_old_tracker
+
+			if ( (uint32) mt_data != d0)						//		cmp.l	mt_data,d0
+			{											//		beq	PasSouris
+														//	
+														//		move	#-1,_permit
+				mt_end();									//		bsr	mt_end
+				mt_data = (char *) d0;						//		move.l	d0,mt_data
+				mt_init();									//		bsr	mt_init
+														//		clr	_permit
+														//	
+			};											//		bra	PasSouris
+
+#endif
+
+		}											//	PasSouris:
+
+	// 0xbfec01 = CIAA serial data register (connected to keyboard)
+
+													//	
+													//		move.b	$bfec01,d0
+													//		cmp.b	#$75,d0
+													//		bne	souris
+													//	
+
+	} while ( ! esc_key );
+
 }
 													//
 void PasSong()											//	PasSong:
-{
-	if (d1<0xE6)										//		cmp	#$e6,d1
-	{
-		PasSouris();									//		blo	PasSouris
-		return;
-	}
+{	if (d1>=0xE6)										//		cmp	#$e6,d1
+	{												//		blo	PasSouris
+		
 													//	
-	d0 = 0;											//		moveq	#0,d0
-	d0 = mousex;										//		move	mousex,d0
-	d0 -= 0x0127;										//		sub	#$127,d0
-	d0 <<= 5;										//		lsr	#5,d0		; 0 - 4
-	if (d0 == 5) Play();									//		beq	Play
-													//		cmp	#1,d0
-	if (d0 == 1) Pause();									//		beq	Pause
-													//		cmp	#2,d0
-	if (d0 == 2) Filter();									//		beq	Filter
+		d0 = 0;										//		moveq	#0,d0
+		d0 = mousex;									//		move	mousex,d0
+		d0 -= 0x0127;									//		sub	#$127,d0
+		d0 <<= 5;									//		lsr	#5,d0		; 0 - 4
 
-	info();
+		switch (d0)
+		{
+			case 0: 	Play();							//		beq	Play
+					break;
+
+			case 1:	Pause();							//		cmp	#1,d0
+					break;							//		beq	Pause
+
+			case 2:	Filter();							//		cmp	#2,d0
+					break;							//		beq	Filter
+		
+			default:	info();
+					break;
+		}
+	}
+
+
 }
 
 void info()												//	info:
 {
 	st_l(PTtexte,Texteinfo);								//		move.l	#Texteinfo,PTtexte								
-	PasSouris();										//		bra	PasSouris
+													//		bra	PasSouris
 }
 
 void Play()
 {
 	_permit = 0;										//	Play:	clr	_permit
-	PasSouris();										//		bra	PasSouris
+													//		bra	PasSouris
 
 }
 
 void Pause()
-{													//	Pause:	move	#-1,_permit
-	PasSouris();										//		move	#$F,$dff096
+{													//	Pause:
+	_permit = -1;										//		move	#-1,_permit
+													//		move	#$F,$dff096
 }													//		bra	PasSouris
 
 void Filter()											//	Filter:
@@ -431,19 +494,8 @@ void Filter()											//	Filter:
 													//		eor.b	#2,$bfe001
 		WAIT = 0;										//		clr.l	WAIT
 	}
-	PasSouris();
 }
 
-void PasSouris()		
-{													//	PasSouris:
-
-	// 0xbfec01 = CIAA serial data register (connected to keyboard)
-
-													//	
-													//		move.b	$bfec01,d0
-													//		cmp.b	#$75,d0
-													//		bne	souris
-}													//	
 
 
 void fin()
@@ -508,7 +560,7 @@ void fin()
 	} while (d4>0);										//		bne	Decrease	; Jusqu'a tous a 0 !!!
 													//	
 													//		move.l	saveirq3+2,$6c.w
-	MT_end();											//		bsr	MT_end
+	mt_end();											//		bsr	mt_end
 													//	
 	a6 = ld_l(0x00000004);								//		move.l	4.w,a6
 													//		jsr	-138(a6)
@@ -599,7 +651,7 @@ void GereScroll()										//	GereScroll:
 	a5 = (uint32) custom;								//		lea	$dff000,a5
 /*
 													//	WaitBlit:
-	// we don't need to this in sw.	 ==>			//		btst	#14,2(a5)
+	// we don't need to do this in sw.	 ==>				//		btst	#14,2(a5)
 													//		bne.b	WaitBlit
 */
 	a0 = ld_l(a5+0x50);								//		move.l	a0,$50(a5)
@@ -608,12 +660,12 @@ void GereScroll()										//	GereScroll:
 	st_l(0x40+a5,0xF9F00000);						//		move.l	#$f9f00000,$40(a5)
 	st_l(0x44+a5,-1);								//		move.l	#-1,$44(a5)
 	st_l(0x58+a5,(12*5*64)+(224/16));				//		move	#[12*5*64]+[224/16],$58(a5)	; Gozy
-	_doBitter();
+	_doBlitter();
+
 }													//		rts
 													//	
 void CopyFont()										//	CopyFont:	; d0="caractere"
-{
-	if (d0!=' ')									//		cmp.b	#' ',d0
+{	if (d0!=' ')									//		cmp.b	#' ',d0
 	{												//		beq.b	Espace
 		if ((d0>='A')&&(d0<='Z'))					//		cmp.b	#'A',d0
 		{											//		blo.b	PasLettre
@@ -680,7 +732,6 @@ void CopyFont()										//	CopyFont:	; d0="caractere"
 				return;								//		bra.b	Fontu
 		}											//	
 	}
-
 	a0 = (uint32) Scr1-(15*42*5)+40;							//	Esp:	lea	Scr1-(15*42*5)+40,a0
 	d0 = 0;											//		moveq	#0,d0
 	d1 = (12*5);									//		move	#[12*5]-1,d1
@@ -856,7 +907,7 @@ void mots_control()										//	mots_control:
 													//	;********************************************
 													//	;* ----- Protracker V1.1B Playroutine ----- *
 													//	;* Lars "Zap" Hamre/Amiga Freelancers 1991  *
-													//	;* Bekkeliveien 10, N-2010 STRØMMEN, Norway *
+													//	;* Bekkeliveien 10, N-2010 STRï¿½MMEN, Norway *
 													//	;********************************************
 													//	
 													//	; VBlank Version 2:
@@ -908,7 +959,7 @@ void mots_control()										//	mots_control:
 void mt_init()											//	mt_init
 {
 	a0 = (uint32) mt_data;								//		move.l	mt_data,A0
-	st_l(mt_SongDataPtr,ld_l(a0));							//		MOVE.L	A0,mt_SongDataPtr
+	mt_SongDataPtr = ld_l(a0);							//		MOVE.L	A0,mt_SongDataPtr
 	a1 = a0;											//		MOVE.L	A0,A1
 	a1 = a1 +952;										//		LEA	952(A1),A1
 	d0 = 127;											//		MOVEQ	#127,D0
@@ -945,7 +996,12 @@ void mt_init()											//	mt_init
 													//		CLR.B	mt_counter
 													//		CLR.B	mt_SongPos
 													//		CLR.W	mt_PatternPos
-													//	mt_end	CLR.W	$DFF0A8
+	mt_end();
+}
+
+void mt_end()											//	mt_end
+{
+													//		CLR.W	$DFF0A8
 													//		CLR.W	$DFF0B8
 													//		CLR.W	$DFF0C8
 													//		CLR.W	$DFF0D8
@@ -1171,7 +1227,7 @@ void mt_music()										//	mt_music
 													//	mt_WaitDMA2
 													//		DBRA	D0,mt_WaitDMA2
 													//	
-													//		LEA	$DFF000,A5
+	a5 = custom;										//		LEA	$DFF000,A5
 													//		LEA	mt_chan4temp(PC),A6
 													//		MOVE.L	n_loopstart(A6),$D0(A5)
 													//		MOVE.W	n_replen(A6),$D4(A5)
@@ -2480,7 +2536,7 @@ void init_mt_data()
 	mt_data=mm1;
 }
 
-void *load_raw(const char *name, int extraSize,  void **ptrE)
+void *load_raw(const char *name, int extraSize,  char **ptrE)
 {
 	void *ptr;
 	BPTR fd;
@@ -2521,16 +2577,16 @@ void load_bin2()
 {
 	int screenSize = 42*5*12;
 
-	Present = load_raw("RB.Present",0,&PresentE);								//	Present:	incbin	'RB.Present'
-	Font = load_raw("RB.Fonte8",18*5*256, &FontE);								//	Font:	incbin	'RB.Fonte8'
+	Present = load_raw("media/RB.Present",0,&PresentE);								//	Present:	incbin	'RB.Present'
+	Font = load_raw("media/RB.Fonte8",18*5*256, &FontE);								//	Font:	incbin	'RB.Fonte8'
 	PicN = FontE - 18*5*256;													//	PicN:	blk.b	18*5*256,0
 	PicNE = FontE;
 	FontE -= 18*5*256;
 
-	Nounou = load_raw("RB.Nounours",18*5*187, &NounouE);						//	Nounou:	incbin	'RB.Nounours'
+	Nounou = load_raw("media/RB.Nounours",18*5*187, &NounouE);						//	Nounou:	incbin	'RB.Nounours'
 																		//	blk.b	18*5*187,0
+	Pic = load_raw("media/RB.Fond",	screenSize * 2 , &PicE );							//	Pic:	incbin	'RB.Fond'
 
-	Pic = load_raw("RB.Found",	screenSize * 2 , &PicE );							//	Pic:	incbin	'RB.Fond'
 	Scr1 = PicE - screenSize * 2;												//	Scr1:	blk.b	42*5*12,0
 	Scr1E = PicE - screenSize;
 	Buffer = PicE - screenSize;												//	Buffer:	blk.b	42*5*12,0
@@ -2566,12 +2622,38 @@ int main()
 		return;
 	}
 
+	// setup fake stack pointer.. :-)
+	emu_stack_ptr = emu_stack;
+
+	init_ecs2colors();		// don't forget to make the lookup table.
+
 	load_bin();
 	load_bin2();
+
+	init_tmm();
+	init_copper2();
+	init_copper();
+	init_Tcoul();
+	init_mt_data();
+	init_PTtexte();
+
+	code();
 
 	cleanup();
 
 	return 0;
+}
+
+void WAITBLIT()
+{
+}
+
+void CheckMouse()
+{
+}
+
+void _doBlitter()
+{
 }
 
 //finintro:
