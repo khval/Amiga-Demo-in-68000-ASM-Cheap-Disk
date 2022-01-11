@@ -228,6 +228,9 @@ void code()											//		section fast,code
 	st_w(Mod+6,18*4);									//		move	#18*4,Mod+6
 													//	
 
+	a0 = (uint32) copper;
+	st_l(a5+0x80,a0);
+
 													//		move.l	4.w,a6
 													//		jsr	-132(a6)
 
@@ -265,7 +268,7 @@ void code()											//		section fast,code
 	{												//	President:
 		d0=62;										//		move	#62,d0
 		PauseCafe2();									//		bsr	PauseCafe2
-		st_b(copper2+6,28);							//		add.b	#28,copper2+6
+		st_b(copper2+6,ld_b(copper2+6)+28);				//		add.b	#28,copper2+6
 	}												//		dbf	d7,President
 													//	
 	d0=62;											//		move	#62,d0
@@ -677,6 +680,9 @@ void GereScroll()										//	GereScroll:
 */
 	a0 = ld_l(a5+0x50);								//		move.l	a0,$50(a5)
 	a1 = ld_l(a5+0x54);								//		move.l	a1,$54(a5)
+
+	st_l(a5+0x50,a0);								//		move.l	a0,$50(a5)
+	st_l(a5+0x54,a1);								//		move.l	a1,$54(a5)
 	st_l(0x64+a5,0x000E000E);						//		move.l	#$000E000E,$64(a5)
 	st_l(0x40+a5,0xF9F00000);						//		move.l	#$f9f00000,$40(a5)
 	st_l(0x44+a5,-1);								//		move.l	#-1,$44(a5)
