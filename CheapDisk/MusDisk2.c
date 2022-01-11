@@ -2238,7 +2238,7 @@ char *Texte = "                  "
 	" HAVE A NICE DAY !......THANK YOU !!!!!!!!......................";
 
 char *Texteinfo =
-		"   WELCOME IN THE infoTEXT... "
+		"   WELCOME IN THE INFOTEXT... "
 		"  J'SUIS D'ACCORD AVEC SERGE!!!   "
 		"PRESS ESC TO QUIT CHEAP DISK    "
 		"CLICK ON NAME OF MUSIC TO CHOOSE ANOTHER ONE....INCREDIBLE"
