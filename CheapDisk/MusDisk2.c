@@ -2557,33 +2557,28 @@ Eq1 = ptr;
 
 void load_bin()
 {
-	mm1 = PTLoadModule("mod.status");											//	mm1:	incbin	'mod.status'
-	mm2 = PTLoadModule("mod.adel");											//	mm2:	incbin	'mod.adel'
-	mm3 = PTLoadModule("mod.compote");											//	mm3:	incbin	'mod.compote'
-	mm4 = PTLoadModule("mod.banzai");											//	mm4:	incbin	'mod.banzai'
-	mm5 = PTLoadModule("mod.milk");											//	mm5:	incbin	'mod.milk'
-	mm6 = PTLoadModule("mod.jambon");											//	mm6:	incbin	'mod.jambon'
-	mm7 = PTLoadModule("mod.atom");											//	mm7:	incbin	'mod.atom'
-	mm8 = PTLoadModule("mod.computer");										//	mm8:	incbin	'mod.computer'
-	mm9 = PTLoadModule("mod.track");											//	mm9:	incbin	'mod.track'
+	mm1 = "media/mod.status";											//	mm1:	incbin	'mod.status'
+	mm2 = "media/mod.adel";											//	mm2:	incbin	'mod.adel'
+	mm3 ="media/mod.compote";											//	mm3:	incbin	'mod.compote'
+	mm4 ="media/mod.banzai";											//	mm4:	incbin	'mod.banzai'
+	mm5 ="media/mod.milk";												//	mm5:	incbin	'mod.milk'
+	mm6 ="media/mod.jambon";											//	mm6:	incbin	'mod.jambon'
+	mm7 ="media/mod.atom";											//	mm7:	incbin	'mod.atom'
+	mm8 ="media/mod.computer";											//	mm8:	incbin	'mod.computer'
+	mm9 ="media/mod.track";											//	mm9:	incbin	'mod.track'
 };
 
 #define safe_unload_module( varname ) if (varname) { PTUnloadModule( varname ); varname = NULL; }
 
-void unload_bin()
-{
-	safe_unload_module(mm1);
-	safe_unload_module(mm2);
-	safe_unload_module(mm4);
-	safe_unload_module(mm5);
-	safe_unload_module(mm6);
-	safe_unload_module(mm7);
-	safe_unload_module(mm8);
-	safe_unload_module(mm9);
-}
+
 
 void init_mt_data()
 {
+	if (!mm1)
+	{
+		printf("mm1 is NULL\n");
+	}
+
 	mt_data=mm1;
 }
 
