@@ -196,7 +196,7 @@ void code()											//		section fast,code
 													//	
 													//		clr.l	0
 													//	
-													//	;	lea	$dff000,a5
+	a5 = (uint32) custom;								//	;	lea	$dff000,a5
 													//	;	lea	safemem(pc),a0
 													//	;	move	$1c(a5),(a0)
 													//	;	or	#$c000,(a0)+
@@ -231,9 +231,7 @@ void code()											//		section fast,code
 													//		move.l	4.w,a6
 													//		jsr	-132(a6)
 
-#if use_old_tracker
 	mt_init();											//		bsr	mt_init
-#endif
 
 													//		move.l	$6c.w,saveirq3+2
 													//		move.l	#irq3,$6c.w
@@ -241,13 +239,13 @@ void code()											//		section fast,code
 													//	
 	a0 = (uint32) Bpls2+6;								//		lea	Bpls2+6,a0
 	d0 = (uint32) Present;								//		move.l	#Present,d0
-	for(d1=3;d1;d1--)									//		moveq	#3-1,d1
+	for(d1=3;d1;d1--)									//		moveq	#3-1,d1		// 3 plains
 	{
 		st_w(a0,D0.lw);									//	CopPres:move	d0,(a0)
 													//		swap	d0
 		st_w(a0-4,D0.hw);								//		move	d0,-4(a0)
 													//		swap	d0
-		d0+=28;										//		add.l	#28,d0
+		d0+=28;										//		add.l	#28,d0			// 28 bytes per row..
 		a0+=8;										//		addq.l	#8,a0
 	}												//		dbf	d1,CopPres
 													//	
@@ -257,7 +255,7 @@ void code()											//		section fast,code
 	a5 = (uint32) custom;								//		lea	$dff000,a5
 	a0 = (uint32) copper2;								//		lea	copper2,a0
 	st_l(a5+0x80,a0);									//		move.l	a0,$80(a5)
-													//		clr	$88(a5)
+	custom -> copjmp1 = 0;								//		clr	$88(a5)
 													//	
 	d0=50*2;											//		move	#50*2,d0
 	PauseCafe2();										//		bsr	PauseCafe2
@@ -438,7 +436,7 @@ void code()											//		section fast,code
 														//	
 														//		move	#-1,_permit
 				mt_end();									//		bsr	mt_end
-				mt_data = (char *) d0;						//		move.l	d0,mt_data
+				mt_data = (const char *) d0;					//		move.l	d0,mt_data
 				mt_init();									//		bsr	mt_init
 														//		clr	_permit
 														//	
@@ -461,7 +459,8 @@ void code()											//		section fast,code
 }
 													//
 void PasSong()											//	PasSong:
-{	if (d1>=0xE6)										//		cmp	#$e6,d1
+{
+	if (d1>=0xE6)										//		cmp	#$e6,d1
 	{												//		blo	PasSouris
 		
 													//	
@@ -687,7 +686,8 @@ void GereScroll()										//	GereScroll:
 }													//		rts
 													//	
 void CopyFont()										//	CopyFont:	; d0="caractere"
-{	if (d0!=' ')									//		cmp.b	#' ',d0
+{
+	if (d0!=' ')									//		cmp.b	#' ',d0
 	{												//		beq.b	Espace
 		if ((d0>='A')&&(d0<='Z'))					//		cmp.b	#'A',d0
 		{											//		blo.b	PasLettre
@@ -816,14 +816,15 @@ void RestoreFond()										//	RestoreFond:
 	for(d0=12;d0;d0--)								
 	{												
 		st_w(a1,ld_w(a0)); a0+=2;					//	RF:	move	(a0)+,(a1)
-		st_w(a1+42,ld_w(a0)); a0+=2;				//		move	(a0)+,42(a1)
+		st_w(a1+42,ld_w(a0)); a0+=2;					//		move	(a0)+,42(a1)
 		st_w(a1+42*2,ld_w(a0)); a0+=2;				//		move	(a0)+,42*2(a1)
 		st_w(a1+42*3,ld_w(a0)); a0+=2;				//		move	(a0)+,42*3(a1)
 		st_w(a1+42*4,ld_w(a0)); a0+=2;				//		move	(a0)+,42*4(a1)
-		a1 += 42*5;									//		lea	42*5(a1),a1
-	}												//		dbf	d0,RF
-}													//		rts
-													//	;====================================================================
+		a1 += 42*5;								//		lea	42*5(a1),a1
+	}											//		dbf	d0,RF
+}												//		rts
+												//	;====================================================================
+
 void PauseCafe2()									//	PauseCafe2:	; d0=Nb secondes
 {
 	for (;d0;d0--)
@@ -1278,7 +1279,7 @@ void mt_music()										//	mt_music
 													//	mt_WaitDMA2
 													//		DBRA	D0,mt_WaitDMA2
 													//	
-	a5 = custom;										//		LEA	$DFF000,A5
+	a5 = (uint32) custom;								//		LEA	$DFF000,A5
 													//		LEA	mt_chan4temp(PC),A6
 													//		MOVE.L	n_loopstart(A6),$D0(A5)
 													//		MOVE.W	n_replen(A6),$D4(A5)
@@ -2328,7 +2329,7 @@ void init_copper2()
 {
 	uint32 *ptr;
 
-	copper2 = malloc(sizeof(uint32) * 50 );
+	copper2 = malloc(sizeof(uint32) * 60 );
 
 ptr = (uint32 *) copper2;
 
@@ -2354,8 +2355,8 @@ Com = ptr;
 	setCop( 0x01FC,0x0000 );
 	setCop( 0x010c,0x11);
 	setCop( 0x0106,0);
-	setCop( 0x0108,0x0038 );
-	setCop( 0x010a,0x0038 );
+	setCop( 0x0108,0x0038 );	// BPL1MOD	
+	setCop( 0x010a,0x0038 );	// BPL2MOD
 	setCop( 0x120,0 );
 	setCop( 0x122,0 );
 	setCop( 0x124,0 );
@@ -2398,7 +2399,7 @@ void init_copper()
 {
 	uint32 *ptr;
 
-	copper = malloc(sizeof(uint32) * 110 );
+	copper = malloc(sizeof(uint32) * 120 );
 
 	ptr = (uint32 *) copper;
 
@@ -2436,57 +2437,57 @@ Mod = ptr;
 
 Sprt = ptr;
 
-	setCop(	0x120,0 );
+	setCop( 0x120,0 );
 	setCop( 0x122,0 );
-	setCop(	0x124,0 );
-	setCop(	0x126,0 );
-	setCop(	0x128,0 );
-	setCop(	0x12a,0 );
-	setCop(	0x12c,0 );
-	setCop(	0x12e,0 );
-	setCop(	0x130,0 );
-	setCop(	0x132,0 );
-	setCop(	0x134,0 );
-	setCop(	0x136,0 );
-	setCop(	0x138,0 );
-	setCop(	0x13a,0 );
-	setCop(	0x13c,0 );
-	setCop(	0x13e,0 );
-	setCop(	0x180,0x033a );
+	setCop( 0x124,0 );
+	setCop( 0x126,0 );
+	setCop( 0x128,0 );
+	setCop( 0x12a,0 );
+	setCop( 0x12c,0 );
+	setCop( 0x12e,0 );
+	setCop( 0x1230,0 );
+	setCop( 0x1232,0 );
+	setCop( 0x1234,0 );
+	setCop( 0x1236,0 );
+	setCop( 0x1238,0 );
+	setCop( 0x123a,0 );
+	setCop( 0x123c,0 );
+	setCop( 0x123e,0 );
+	setCop( 0x1280,0x033a );
 	setCop( 0x182,0x0fff );
 
 coul = ptr;
 
-	setCop(	0x184,0xeef );
-	setCop(	0x186,0x0ccf );
-	setCop(	0x188,0x0bbf );
-	setCop(	0x18a,0x09af );
-	setCop(	0x18c,0x088f );
-	setCop(	0x18e,0x067f );
-	setCop(	0x190,0x055d );
-	setCop(	0x192,0x044c );
-	setCop(	0x194,0x033a );
-	setCop(	0x196,0x0229 );
-	setCop(	0x198,0x0117 );
-	setCop(	0x19a,0x0116 );
-	setCop(	0x19c,0x0004 );
-	setCop(	0x19e,0x0003 );
-	setCop(	0x1a0,0x0ffc );
-	setCop(	0x1a2,0x0eea );
-	setCop(	0x1a4,0x0dd9 );
-	setCop(	0x1a6,0x0cb8 );
-	setCop(	0x1a8,0x0ba7 );
-	setCop(	0x1aa,0x0b96 );
-	setCop(	0x1ac,0x0a85 );
-	setCop(	0x1ae,0x0964 );
-	setCop(	0x1b0,0x0853 );
-	setCop(	0x1b2,0x0742 );
-	setCop(	0x1b4,0x0632 );
-	setCop(	0x1b6,0x0521 );
-	setCop(	0x1b8,0x0511 );
-	setCop(	0x1ba,0x0410 );
-	setCop(	0x1bc,0x0300 );
-	setCop(	0x1be,0x0200 );
+	setCop( 0x1284,0xeef );
+	setCop( 0x1286,0x0ccf );
+	setCop( 0x1288,0x0bbf );
+	setCop( 0x128a,0x09af );
+	setCop( 0x128c,0x088f );
+	setCop( 0x128e,0x067f );
+	setCop( 0x1290,0x055d );
+	setCop( 0x1292,0x044c );
+	setCop( 0x1294,0x033a );
+	setCop( 0x1296,0x0229 );
+	setCop( 0x1298,0x0117 );
+	setCop( 0x129a,0x0116 );
+	setCop( 0x129c,0x0004 );
+	setCop( 0x129e,0x0003 );
+	setCop( 0x12a0,0x0ffc );
+	setCop( 0x12a2,0x0eea );
+	setCop( 0x12a4,0x0dd9 );
+	setCop( 0x12a6,0x0cb8 );
+	setCop( 0x12a8,0x0ba7 );
+	setCop( 0x12aa,0x0b96 );
+	setCop( 0x12ac,0x0a85 );
+	setCop( 0x12ae,0x0964 );
+	setCop( 0x12b0,0x0853 );
+	setCop( 0x12b2,0x0742 );
+	setCop( 0x12b4,0x0632 );
+	setCop( 0x12b6,0x0521 );
+	setCop( 0x12b8,0x0511 );
+	setCop( 0x12ba,0x0410 );
+	setCop( 0x12bc,0x0300 );
+	setCop( 0x12be,0x0200 );
 
 
 //; Origine EEF
