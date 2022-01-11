@@ -21,6 +21,11 @@
 #include <intuition/intuition.h>
 #include <hardware/custom.h>
 
+struct Window *win = NULL;
+struct BitMap *copperBitmap = NULL;
+
+#define demo_name "Quack"
+
 #include "common.h"
 #include "render.h"
 
@@ -59,15 +64,16 @@ char *FontE = NULL;
 
 uint16 Compteur = 8;
 
-char *mt_SongDataPtr = NULL;
+struct Module *mt_SongDataPtr = NULL;
+const char *mt_data=NULL;
 
 uint32 *coul,*coul0,*coul1,*coul2,*coul3,*coul4,*coul5,*coul6,*coul7,*coul8,*coul9,*coul10;
-struct Module *mm1,*mm2,*mm3,*mm4,*mm5,*mm6,*mm7,*mm8,*mm9;
+const char *mm1,*mm2,*mm3,*mm4,*mm5,*mm6,*mm7,*mm8,*mm9;
 
 void *Tcoul[10];
-void *tmm[10];
+const char *tmm[10];
 
-void *mt_data=NULL;
+
 
 extern char *Texte;
 extern char *Texteinfo;
@@ -75,6 +81,14 @@ extern uint16 Ritchy_Volumes[];
 extern uint16 TableEqu[];
 
 char *PTtexte = NULL;
+
+struct BackFillArgs
+{
+	int parm;
+	int value;
+};
+
+void BackFill_Func(struct RastPort *ArgRP, struct BackFillArgs *MyArgs);
 
 void init_PTtexte()
 {
@@ -87,13 +101,15 @@ void init_Tcoul()
 	void *init[] = { coul1,coul2,coul3,coul4,coul5,coul6,coul7,coul8,coul9 };
 	
 	for (i=0;i<sizeof(init)/sizeof(void *);i++)
+	{
 		Tcoul[i] = init[i] ;
+	}
 }
 
 void init_tmm()
 {
 	int i;
-	void *init[] = {mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9};
+	const char *init[] = {mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9};
 	
 	for (i=0;i<sizeof(init)/sizeof(void *);i++)
 		tmm[i] = init[i] ;
@@ -129,6 +145,10 @@ void mt_rtnend();
 void mt_end();
 void WAITBLIT();
 void SaveFond();
+bool CheckMouse();
+void _doBlitter();
+void TestRender();
+
 
 extern uint8 mt_speed;
 extern uint8 mt_counter;
@@ -338,6 +358,8 @@ void code()											//		section fast,code
 	{
 
 		WaitTOF();									//		cmp.b	#200,$dff006
+		render_copper( custom,  (uint32 *) custom -> cop1lc ,   copperBitmap );
+		BackFill_Func(NULL, NULL);
 													//		bne.b	Souris
 													//	s2:	cmp.b	#200,$dff006
 													//		beq.b	s2
@@ -807,6 +829,8 @@ void PauseCafe2()									//	PauseCafe2:	; d0=Nb secondes
 	for (;d0;d0--)
 	{
 		WaitTOF();									//		cmp.b	#200,$dff006
+		render_copper( custom,  (uint32 *) custom -> cop1lc ,   copperBitmap );
+		BackFill_Func(NULL, NULL);
 													//		bne	PauseCafe2
 													//	pc22:	cmp.b	#200,$dff006
 													//		beq	pc22
@@ -958,8 +982,19 @@ void mots_control()										//	mots_control:
 													//	
 void mt_init()											//	mt_init
 {
+	if (mt_data) 
+	{
+		mt_SongDataPtr = PTLoadModule(mt_data);
+		PTPlay(mt_SongDataPtr);
+	}
+	else
+	{
+		printf("mt_data is NULL\n");
+	}
+/*
+
 	a0 = (uint32) mt_data;								//		move.l	mt_data,A0
-	mt_SongDataPtr = ld_l(a0);							//		MOVE.L	A0,mt_SongDataPtr
+	mt_SongDataPtr = (struct Module *) ld_l(a0);						//		MOVE.L	A0,mt_SongDataPtr
 	a1 = a0;											//		MOVE.L	A0,A1
 	a1 = a1 +952;										//		LEA	952(A1),A1
 	d0 = 127;											//		MOVEQ	#127,D0
@@ -996,16 +1031,32 @@ void mt_init()											//	mt_init
 													//		CLR.B	mt_counter
 													//		CLR.B	mt_SongPos
 													//		CLR.W	mt_PatternPos
-	mt_end();
+*/
 }
 
 void mt_end()											//	mt_end
 {
+
+	if (mt_SongDataPtr)
+	{
+
+		PTStop(mt_SongDataPtr);
+		PTUnloadModule(mt_SongDataPtr);
+		mt_SongDataPtr = NULL;
+	}
+	else
+	{
+		printf("No song is playing\n");
+	}
+
+/*
+
 													//		CLR.W	$DFF0A8
 													//		CLR.W	$DFF0B8
 													//		CLR.W	$DFF0C8
 													//		CLR.W	$DFF0D8
 													//		MOVE.W	#$F,$DFF096
+*/
 }													//		RTS
 													//	
 void mt_music()										//	mt_music
@@ -2579,7 +2630,7 @@ void load_bin2()
 
 	Present = load_raw("media/RB.Present",0,&PresentE);								//	Present:	incbin	'RB.Present'
 	Font = load_raw("media/RB.Fonte8",18*5*256, &FontE);								//	Font:	incbin	'RB.Fonte8'
-	PicN = FontE - 18*5*256;													//	PicN:	blk.b	18*5*256,0
+	PicN = FontE - 18*5*256;														//	PicN:	blk.b	18*5*256,0
 	PicNE = FontE;
 	FontE -= 18*5*256;
 
@@ -2611,7 +2662,74 @@ void cleanup()
 {
 	unload_bin2();
 	unload_bin();
+
+	if (win) CloseWindow(win);
+	win = NULL;
+
+	if (copperBitmap) FreeBitMap(copperBitmap);
+	copperBitmap = NULL;
+
 	close_libs();
+}
+
+#define inner_win_w (640 + 64)
+#define inner_win_h (512 + 64)
+
+bool init_sys()
+{
+
+	win = OpenWindowTags( NULL, 
+		WA_IDCMP,IDCMP_MOUSEBUTTONS,
+		WA_Left,320,
+		WA_Top,20,
+		WA_InnerWidth, inner_win_w,
+		WA_InnerHeight, inner_win_h,
+
+		WA_MinWidth,	100,
+	 	WA_MinHeight,	100,	
+		WA_MaxWidth,	~0,
+	 	WA_MaxHeight, ~0,	
+
+		WA_DragBar, true,
+		WA_DepthGadget, true,
+		WA_SizeGadget, TRUE,
+		WA_SizeBBottom, TRUE,
+		WA_CloseGadget, FALSE,
+		WA_Title, (ULONG) demo_name,
+		TAG_END);
+
+	if (!win)
+	{
+		printf("window failed to open\n");
+		return false;
+	}
+
+	ActivateWindow(win);
+
+	copperBitmap =AllocBitMap( win -> Width, win -> Height, 32, BMF_DISPLAYABLE, win ->RPort -> BitMap);
+
+	if (copperBitmap) 
+	{
+		struct RastPort rp;
+		InitRastPort(&rp);
+		rp.BitMap = copperBitmap;
+		RectFillColor(&rp, 0, 0, win -> Width, win -> Height, 0xFF666666);
+
+		return true;
+	}
+
+	return false;
+}
+
+void show_info()
+{
+	printf("copper list1: %08x\n",copper);
+	printf("copper list2: %08x\n",copper2);
+
+	printf("Present: %08x - %08x\n",Present,PresentE);
+	printf("Font: %08x - %08x\n",Font,FontE);
+	printf("Nounou: %08x - %08x\n",Nounou, NounouE);
+	printf("Pic: %08x - %08x\n",Pic,PicE);
 }
 
 int main()
@@ -2625,19 +2743,26 @@ int main()
 	// setup fake stack pointer.. :-)
 	emu_stack_ptr = emu_stack;
 
-	init_ecs2colors();		// don't forget to make the lookup table.
+	if (init_sys())
+	{
+		init_ecs2colors();		// don't forget to make the lookup table.
 
-	load_bin();
-	load_bin2();
+		load_bin();
+		load_bin2();
 
-	init_tmm();
-	init_copper2();
-	init_copper();
-	init_Tcoul();
-	init_mt_data();
-	init_PTtexte();
+		init_tmm();
+		init_copper2();
+		init_copper();
+		init_Tcoul();
+		init_mt_data();
+		init_PTtexte();
 
-	code();
+		show_info();
+	
+		code();
+
+		mt_end();
+	}
 
 	cleanup();
 
@@ -2648,12 +2773,145 @@ void WAITBLIT()
 {
 }
 
-void CheckMouse()
+bool CheckMouse()
 {
+}
+
+struct valid_range
+{
+	uint8 *s;
+	uint8 *e;
+	const char *name;
+};
+
+
+
+const char *validAddress(uint8 *ptr)
+{
+	struct valid_range *vrange;
+
+	struct valid_range valid_ranges[]=
+		{
+			{Font,FontE,"Font"},
+			{Pic,PicE,"Pic"},
+			{PicN,PicNE,"PicN"},
+			{Scr1,Scr1E,"Screen"},
+			{Buffer,BufferE,"Buffer"},
+			{NULL,NULL,NULL}
+		};
+
+	for (vrange=valid_ranges;vrange->s;vrange++)
+	{
+		if ((ptr>=vrange -> s) && (ptr < vrange -> e))
+		{
+			return vrange -> name;
+		}
+	}
+
+	return NULL;
 }
 
 void _doBlitter()
 {
+	const char *destName;
+	uint16 *dptr = (uint16 *) custom -> bltdpt;
+
+	destName = validAddress( (uint8 *) dptr);
+	if ( destName )
+	{
+		printf("bltdpt %s\n",destName);
+	}
+	else
+	{
+		printf("not a valied address: %08x\n", dptr);
+		return;
+	}
+
+	doBlitter( custom );
 }
+
+static struct Hook hook;
+static struct Rectangle rect;
+static CompositeHookData hookData;
+
+struct Hook BackFill_Hook =
+{
+	{NULL, NULL},
+	(HOOKFUNC) &BackFill_Func,
+	NULL,
+	NULL
+};
+
+void set_target_hookData( struct BitMap *bitmap, struct Window *win );
+
+void BackFill_Func(struct RastPort *ArgRP, struct BackFillArgs *MyArgs)
+{
+	if (win)
+	{
+		set_target_hookData(copperBitmap,win);
+
+		register struct RastPort *RPort = win->RPort;
+
+		LockLayer(0, win -> RPort->Layer);
+		DoHookClipRects(&hook, win -> RPort, &rect);
+		UnlockLayer( win -> RPort->Layer);
+	}
+}
+
+static ULONG _compositeHookFunc(
+			struct Hook *hook, 
+			struct RastPort *rastPort, 
+			struct BackFillMessage *msg)
+ {
+
+	CompositeHookData *hookData = (CompositeHookData*)hook->h_Data;
+
+	hookData->retCode = CompositeTags(
+		COMPOSITE_Src, 
+			hookData->srcBitMap, 
+			rastPort->BitMap,
+		COMPTAG_SrcWidth,   hookData->srcWidth,
+		COMPTAG_SrcHeight,  hookData->srcHeight,
+		COMPTAG_ScaleX, 	hookData->scaleX,
+		COMPTAG_ScaleY, 	hookData->scaleY,
+		COMPTAG_OffsetX,    msg->Bounds.MinX - (msg->OffsetX - hookData->offsetX),
+		COMPTAG_OffsetY,    msg->Bounds.MinY - (msg->OffsetY - hookData->offsetY),
+		COMPTAG_DestX,      msg->Bounds.MinX,
+		COMPTAG_DestY,      msg->Bounds.MinY,
+		COMPTAG_DestWidth,  msg->Bounds.MaxX - msg->Bounds.MinX + 1,
+		COMPTAG_DestHeight, msg->Bounds.MaxY - msg->Bounds.MinY + 1,
+		COMPTAG_Flags,      COMPFLAG_SrcFilter | COMPFLAG_IgnoreDestAlpha | COMPFLAG_HardwareOnly,
+		TAG_END);
+
+	return 0;
+}
+
+
+void set_target_hookData( struct BitMap *bitmap, struct Window *win )
+{
+ 	rect.MinX = win->BorderLeft;
+ 	rect.MinY = win->BorderTop;
+ 	rect.MaxX = win->Width - win->BorderRight - 1;
+ 	rect.MaxY = win->Height - win->BorderBottom - 1;
+
+ 	float destWidth = rect.MaxX - rect.MinX + 1;
+ 	float destHeight = rect.MaxY - rect.MinY + 1;
+ 	float scaleX = (destWidth + 0.5f) / inner_win_w;
+ 	float scaleY = (destHeight + 0.5f) / inner_win_h;
+
+	hookData.srcBitMap = copperBitmap;
+	hookData.srcWidth = inner_win_w;
+	hookData.srcHeight = inner_win_h;
+	hookData.offsetX = win->BorderLeft;
+	hookData.offsetY = win->BorderTop;
+	hookData.scaleX = COMP_FLOAT_TO_FIX(scaleX);
+	hookData.scaleY = COMP_FLOAT_TO_FIX(scaleY);
+	hookData.retCode = COMPERR_Success;
+
+	hook.h_Entry = (HOOKFUNC) _compositeHookFunc;
+	hook.h_Data = &hookData;
+
+}
+
 
 //finintro:
